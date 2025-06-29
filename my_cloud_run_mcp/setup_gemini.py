@@ -39,7 +39,7 @@ def test_gemini_api():
         api_key = os.getenv('GEMINI_API_KEY')
         genai.configure(api_key=api_key)
         
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-pro')
         response = model.generate_content("Hello! Please respond with 'Gemini API is working!'")
         
         print(f"✅ Gemini API test successful")

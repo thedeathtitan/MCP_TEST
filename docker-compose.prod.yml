@@ -1,0 +1,69 @@
+# =============================================
+# Production Docker Compose Override
+# =============================================
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+version: "3.9"
+
+services:
+  # Production backend with Cloud SQL Auth Proxy sidecar
+  mcp-backend:
+    build:
+      target: production
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      # Use Cloud SQL connection
+      DATABASE_URL: postgresql://mcp_prod_user:${POSTGRES_PASSWORD}@127.0.0.1:5432/mcp_diagnostics_prod
+    volumes: []  # Remove development volumes
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+  # Production frontend with nginx
+  frontend:
+    build:
+      target: production
+    environment:
+      NODE_ENV: production
+    volumes: []  # Remove development volumes
+    ports:
+      - "80:80"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  # Cloud SQL Auth Proxy as sidecar
+  auth-proxy:
+    restart: always
+    profiles: []  # Remove profile restriction for production
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.1'
+
+  # Disable development services
+  db:
+    profiles:
+      - local-only
+
+  pgadmin:
+    profiles:
+      - local-only
+
+  flyway:
+    profiles:
+      - local-only 

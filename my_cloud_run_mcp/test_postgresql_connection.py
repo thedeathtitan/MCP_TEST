@@ -6,6 +6,10 @@ Test script to verify PostgreSQL connection after deployment
 import requests
 import json
 import time
+import os
+
+# Use local server URL in development, production URL in production
+MCP_SERVER_URL = os.getenv('MCP_SERVER_URL', 'http://localhost:3000')
 
 def test_sql_function(function_name, arguments=None):
     """Test a specific SQL function"""
@@ -14,7 +18,7 @@ def test_sql_function(function_name, arguments=None):
     
     try:
         response = requests.post(
-            'https://mcp-server-371380987858.us-central1.run.app/mcp',
+            f'{MCP_SERVER_URL}/mcp',
             json={
                 'jsonrpc': '2.0',
                 'method': 'tools/call',
@@ -59,6 +63,8 @@ def test_sql_function(function_name, arguments=None):
 def main():
     """Run comprehensive PostgreSQL connection tests"""
     print("🔄 POSTGRESQL CONNECTION TESTS")
+    print("=" * 50)
+    print(f"Testing server: {MCP_SERVER_URL}")
     print("=" * 50)
     
     tests = [

@@ -153,7 +153,7 @@ async def run_gemini_sql_tests():
 
     # Create the model with all database tools
     tool_declarations = [genai.types.Tool(function_declarations=[tool]) for tool in database_tools]
-    model = genai.GenerativeModel(model_name='gemini-1.5-flash', tools=tool_declarations)
+    model = genai.GenerativeModel(model_name='gemini-2.5-pro', tools=tool_declarations)
 
     # Test scenarios
     test_scenarios = [

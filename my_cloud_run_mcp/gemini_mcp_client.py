@@ -25,7 +25,7 @@ class GeminiMCPClient:
         
         # Configure Gemini
         genai.configure(api_key=gemini_api_key)
-        self.model = genai.GenerativeModel('gemini-2.5-flash')
+        self.model = genai.GenerativeModel('gemini-2.5-pro')
         
         print(f"🤖 Gemini MCP Client initialized")
         print(f"📡 MCP Server: {mcp_server_url}")

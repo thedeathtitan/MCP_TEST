@@ -21,23 +21,56 @@ const { Client } = pg;
 const connector = new Connector();
 
 /**
- * Creates a connection to Cloud SQL using the Cloud SQL Connector
+ * Creates a connection to Cloud SQL using the Cloud SQL Connector (production)
+ * or direct PostgreSQL connection (local development)
  */
 async function createConnection() {
-  const clientOpts = await connector.getOptions({
-    instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME,
-    ipType: 'PUBLIC',
-  });
+  // Check if we have Cloud SQL configuration (production)
+  if (process.env.INSTANCE_CONNECTION_NAME && process.env.DB_USER) {
+    console.log('Using Cloud SQL Connector for production database');
+    const clientOpts = await connector.getOptions({
+      instanceConnectionName: process.env.INSTANCE_CONNECTION_NAME,
+      ipType: 'PUBLIC',
+    });
 
-  const client = new Client({
-    ...clientOpts,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-  });
+    const client = new Client({
+      ...clientOpts,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
+    });
 
-  await client.connect();
-  return client;
+    await client.connect();
+    return client;
+  }
+  
+  // Check if we have DATABASE_URL (local development or other environments)
+  if (process.env.DATABASE_URL) {
+    console.log('Using direct PostgreSQL connection for local development');
+    const client = new Client({
+      connectionString: process.env.DATABASE_URL,
+    });
+
+    await client.connect();
+    return client;
+  }
+
+  // Fallback to individual environment variables
+  if (process.env.POSTGRES_HOST) {
+    console.log('Using individual PostgreSQL environment variables');
+    const client = new Client({
+      host: process.env.POSTGRES_HOST,
+      port: process.env.POSTGRES_PORT || 5432,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+      database: process.env.POSTGRES_DB,
+    });
+
+    await client.connect();
+    return client;
+  }
+
+  throw new Error('No database configuration found. Please set either INSTANCE_CONNECTION_NAME + DB_USER or DATABASE_URL or POSTGRES_HOST + POSTGRES_USER');
 }
 
 /**

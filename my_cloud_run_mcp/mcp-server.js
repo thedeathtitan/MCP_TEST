@@ -90,6 +90,16 @@ if (shouldStartStdio()) {
   
   app.use(express.json());
 
+  // Health check endpoint
+  app.get('/health', (req, res) => {
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      service: 'mcp-server',
+      version: '1.0.0'
+    });
+  });
+
   app.post('/mcp', async (req, res) => {
     console.log('/mcp Received:', req.body);
     const server = await getServer();

@@ -8,6 +8,7 @@
   "scripts": {
     "deploy": "gcloud run deploy mcp-server --source . --region=us-central1 --allow-unauthenticated",
     "deploy:auth": "gcloud run deploy mcp-server --source . --region=us-central1 --no-allow-unauthenticated",
+    "test": "python test_postgresql_connection.py",
     "test:mcp": "npx @modelcontextprotocol/inspector node mcp-server.js",
     "test:postgresql": "python test_postgresql_connection.py",
     "test:sql": "python test_sql_functions.py",
@@ -17,7 +18,7 @@
     "test:create-project": "node test/test-create-project.js",
     "test:service-logs": "node test/test-service-logs.js",
     "start": "node mcp-server.js",
-    "dev": "node --inspect mcp-server.js"
+    "dev": "nodemon --exec node mcp-server.js"
   },
   "repository": {
     "type": "git",
@@ -51,5 +52,8 @@
     "google-proto-files": "^4.2.0",
     "pg": "^8.11.3",
     "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }

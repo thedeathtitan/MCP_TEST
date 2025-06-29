@@ -1,0 +1,132 @@
+services:
+  # PostgreSQL Database for local development
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mcp_diagnostics
+      POSTGRES_USER: mcp_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_123}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mcp_user -d mcp_diagnostics"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Cloud SQL Auth Proxy for consistent DB access pattern
+  auth-proxy:
+    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:latest
+    command: [
+      "--address=0.0.0.0", 
+      "--port=5433", 
+      "--private-ip",
+      "${CLOUD_SQL_CONNECTION_NAME:-my-project:us-central1:dev-db}"
+    ]
+    ports:
+      - "5433:5433"
+    volumes:
+      - ~/.config/gcloud:/gcp/config:ro
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /gcp/config/application_default_credentials.json
+    depends_on:
+      - db
+    profiles:
+      - cloud  # Only run when cloud profile is active
+
+  # Flyway database migrations
+  flyway:
+    image: flyway/flyway:10-alpine
+    command: -url=jdbc:postgresql://db:5432/mcp_diagnostics -user=mcp_user -password=${POSTGRES_PASSWORD:-dev_password_123} -connectRetries=60 migrate
+    volumes:
+      - ./sql/migrations:/flyway/sql
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - migration
+
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - dev  # Only run in dev profile
+
+  # MCP Backend Server (Node.js + Python)
+  mcp-backend:
+    build: 
+      context: ./my_cloud_run_mcp
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: 
+      - .env.local
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      DATABASE_URL: postgresql://mcp_user:${POSTGRES_PASSWORD:-dev_password_123}@db:5432/mcp_diagnostics
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: mcp_diagnostics
+      POSTGRES_USER: mcp_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_123}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./my_cloud_run_mcp:/usr/src/app
+      - /usr/src/app/node_modules
+      - /usr/src/app/.venv
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Application (React + Vite)
+  frontend:
+    build:
+      context: ./Dspace_working
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      VITE_MCP_API_URL: http://mcp-backend:3000
+      VITE_APP_TITLE: "Medical Diagnostic Space"
+    ports:
+      - "5173:80"
+    volumes:
+      - ./Dspace_working:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - mcp-backend
+    profiles:
+      - dev
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  default:
+    name: mcp_network 
