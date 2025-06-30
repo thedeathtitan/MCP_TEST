@@ -194,86 +194,11 @@ export async function analyzeWithOpenAI(clinicalNote: string, apiKey?: string, r
     
   } catch (error) {
     console.error('❌ MCP analysis failed:', error);
-    
-    // If this is the first attempt, try once more
-    if (retryCount < 1) {
-      console.log('🔄 Retrying MCP analysis...');
-      return analyzeWithOpenAI(clinicalNote, apiKey, retryCount + 1);
-    }
-    
-    // If retries failed, create a minimal fallback response
-    console.warn('⚠️ Creating fallback response after MCP failure');
-    return createMinimalFallbackResponse(clinicalNote, error);
+    throw error;
   }
 }
 
-/**
- * Create a minimal fallback response when MCP analysis fails
- */
-function createMinimalFallbackResponse(clinicalNote: string, error: any): OpenAIResponse {
-  console.warn('Creating minimal fallback response due to error:', error);
-  
-  // Extract basic medical terms from the clinical note for a simple analysis
-  const text = clinicalNote.toLowerCase();
-  const symptoms = ['chest pain', 'shortness of breath', 'fever', 'headache', 'nausea', 'abdominal pain']
-    .filter(symptom => text.includes(symptom));
-  
-  const nodes: DiagnosisNode[] = [
-    {
-      id: 'fallback_assessment',
-      position: { x: 200, y: 150 },
-      data: {
-        id: 'fallback_assessment',
-        label: 'Clinical Assessment Required',
-        type: 'diagnosis',
-        likelihood: 0.8,
-        confidence: 0.6,
-        evidence: symptoms.length > 0 ? symptoms : ['Clinical presentation requires assessment'],
-        details: 'Patient requires comprehensive medical assessment based on clinical presentation',
-        category: 'emergency',
-        priority: 'high'
-      }
-    },
-    {
-      id: 'immediate_workup',
-      position: { x: 400, y: 150 },
-      data: {
-        id: 'immediate_workup',
-        label: 'Comprehensive Medical Workup',
-        type: 'next_action',
-        priority: 'urgent',
-        details: 'Immediate comprehensive assessment and diagnostic workup required',
-        category: 'diagnostic',
-        timing: 'immediately',
-        related_diagnosis_id: 'fallback_assessment'
-      }
-    }
-  ];
 
-  const edges: DiagnosisEdge[] = [
-    {
-      id: 'fallback_edge',
-      source: 'fallback_assessment',
-      target: 'immediate_workup',
-      label: 'requires workup',
-      type: 'related'
-    }
-  ];
-
-  const problemList: ProblemListItem[] = [
-    {
-      id: 'fallback_problem',
-      diagnosis: 'Clinical Assessment Required',
-      icd10Code: 'Z00.00',
-      likelihood: 0.8,
-      category: 'emergency',
-      evidence: symptoms.length > 0 ? symptoms : ['Clinical presentation requires assessment'],
-      status: 'active'
-    }
-  ];
-
-  return { nodes, edges, problemList };
-}
 
 /**
  * Create grouped layout for diagnosis visualization

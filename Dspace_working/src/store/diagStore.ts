@@ -65,15 +65,7 @@ export const useDiagStore = create<DiagnosisState>()(
         } catch (error) {
           console.error('❌ Analysis error:', error);
           const errorMessage = error instanceof Error ? error.message : 'Failed to analyze note';
-          
-          // Provide helpful error messages based on the type of error
-          if (errorMessage.includes('MCP Server error')) {
-            setError('Medical analysis server is temporarily unavailable. Please try again in a moment.');
-          } else if (errorMessage.includes('database')) {
-            setError('Medical database is temporarily unavailable. Analysis may be limited.');
-          } else {
-            setError(errorMessage);
-          }
+          setError(errorMessage);
         } finally {
           setLoading(false);
         }

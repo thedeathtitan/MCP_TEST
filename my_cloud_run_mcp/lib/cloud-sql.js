@@ -126,6 +126,76 @@ export async function initializeDatabase() {
       CREATE INDEX IF NOT EXISTS idx_relationships_type ON relationships(relationship_type)
     `);
 
+    // Create user sessions table for tracking user interactions
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS user_sessions (
+        id SERIAL PRIMARY KEY,
+        session_id VARCHAR(255) UNIQUE NOT NULL,
+        user_identifier VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_active BOOLEAN DEFAULT true
+      )
+    `);
+
+    // Create user interactions table for tracking each medical analysis
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS user_interactions (
+        id SERIAL PRIMARY KEY,
+        session_id VARCHAR(255) NOT NULL,
+        clinical_note TEXT NOT NULL,
+        analysis_result JSONB,
+        processing_time INTEGER,
+        model_used VARCHAR(100),
+        nodes_created INTEGER DEFAULT 0,
+        relationships_created INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (session_id) REFERENCES user_sessions(session_id) ON DELETE CASCADE
+      )
+    `);
+
+    // Create diagnosis history table for tracking diagnosis over time
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS diagnosis_history (
+        id SERIAL PRIMARY KEY,
+        interaction_id INTEGER NOT NULL,
+        diagnosis_label VARCHAR(255) NOT NULL,
+        diagnosis_type VARCHAR(100) NOT NULL,
+        likelihood DECIMAL(3,2),
+        confidence DECIMAL(3,2),
+        priority VARCHAR(50),
+        category VARCHAR(100),
+        evidence JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (interaction_id) REFERENCES user_interactions(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Create indexes for history tables
+    await connection.query(`
+      CREATE INDEX IF NOT EXISTS idx_user_sessions_session_id ON user_sessions(session_id)
+    `);
+    
+    await connection.query(`
+      CREATE INDEX IF NOT EXISTS idx_user_interactions_session_id ON user_interactions(session_id)
+    `);
+    
+    await connection.query(`
+      CREATE INDEX IF NOT EXISTS idx_user_interactions_created_at ON user_interactions(created_at)
+    `);
+    
+    await connection.query(`
+      CREATE INDEX IF NOT EXISTS idx_diagnosis_history_interaction_id ON diagnosis_history(interaction_id)
+    `);
+    
+    await connection.query(`
+      CREATE INDEX IF NOT EXISTS idx_diagnosis_history_diagnosis_label ON diagnosis_history(diagnosis_label)
+    `);
+    
+    await connection.query(`
+      CREATE INDEX IF NOT EXISTS idx_diagnosis_history_created_at ON diagnosis_history(created_at)
+    `);
+
     console.log('Database tables initialized successfully');
     return true;
   } catch (error) {
@@ -309,11 +379,198 @@ export async function updateNode(nodeId, label = null, type = null) {
 export async function testConnection() {
   try {
     const connection = await createConnection();
-    await connection.query('SELECT 1 as test');
+    
+    // Try a simple query
+    const result = await connection.query('SELECT NOW() as current_time');
+    console.log('Database connection successful:', result.rows[0]);
+    
     await connection.end();
     return true;
   } catch (error) {
-    console.error('Database connection test failed:', error);
+    console.error('Database connection failed:', error.message);
     return false;
+  }
+}
+
+/**
+ * Creates or updates a user session for tracking
+ * @param {string} sessionId - Unique session identifier
+ * @param {string} userIdentifier - Optional user identifier (IP, device ID, etc.)
+ * @returns {Promise<Object>} The created or updated session
+ */
+export async function createOrUpdateSession(sessionId, userIdentifier = null) {
+  if (!sessionId) {
+    throw new Error('Session ID is required');
+  }
+
+  const connection = await createConnection();
+  
+  try {
+    // First try to update existing session
+    const updateResult = await connection.query(
+      'UPDATE user_sessions SET last_activity = CURRENT_TIMESTAMP, is_active = true WHERE session_id = $1 RETURNING *',
+      [sessionId]
+    );
+
+    if (updateResult.rows.length > 0) {
+      return updateResult.rows[0];
+    }
+
+    // If no existing session, create new one
+    const insertResult = await connection.query(
+      'INSERT INTO user_sessions (session_id, user_identifier) VALUES ($1, $2) RETURNING *',
+      [sessionId, userIdentifier]
+    );
+
+    return insertResult.rows[0];
+  } catch (error) {
+    console.error('Error managing session:', error);
+    throw error;
+  } finally {
+    await connection.end();
+  }
+}
+
+/**
+ * Records a user interaction (medical analysis)
+ * @param {string} sessionId - Session identifier
+ * @param {string} clinicalNote - The clinical note analyzed
+ * @param {Object} analysisResult - The complete analysis result
+ * @param {number} processingTime - Time taken for analysis in milliseconds
+ * @param {string} modelUsed - Model used for analysis
+ * @param {number} nodesCreated - Number of nodes created
+ * @param {number} relationshipsCreated - Number of relationships created
+ * @returns {Promise<Object>} The created interaction record
+ */
+export async function recordInteraction(sessionId, clinicalNote, analysisResult, processingTime, modelUsed, nodesCreated = 0, relationshipsCreated = 0) {
+  if (!sessionId || !clinicalNote) {
+    throw new Error('Session ID and clinical note are required');
+  }
+
+  const connection = await createConnection();
+  
+  try {
+    const result = await connection.query(`
+      INSERT INTO user_interactions 
+      (session_id, clinical_note, analysis_result, processing_time, model_used, nodes_created, relationships_created)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) 
+      RETURNING *
+    `, [sessionId, clinicalNote, JSON.stringify(analysisResult), processingTime, modelUsed, nodesCreated, relationshipsCreated]);
+
+    return result.rows[0];
+  } catch (error) {
+    console.error('Error recording interaction:', error);
+    throw error;
+  } finally {
+    await connection.end();
+  }
+}
+
+/**
+ * Records diagnosis history for tracking diagnosis patterns over time
+ * @param {number} interactionId - The interaction ID this diagnosis belongs to
+ * @param {Array} diagnoses - Array of diagnosis objects to record
+ * @returns {Promise<Array>} Array of created diagnosis history records
+ */
+export async function recordDiagnosisHistory(interactionId, diagnoses) {
+  if (!interactionId || !diagnoses || !Array.isArray(diagnoses)) {
+    throw new Error('Interaction ID and diagnoses array are required');
+  }
+
+  const connection = await createConnection();
+  
+  try {
+    const results = [];
+    
+    for (const diagnosis of diagnoses) {
+      const result = await connection.query(`
+        INSERT INTO diagnosis_history 
+        (interaction_id, diagnosis_label, diagnosis_type, likelihood, confidence, priority, category, evidence)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+        RETURNING *
+      `, [
+        interactionId,
+        diagnosis.label,
+        diagnosis.type,
+        diagnosis.likelihood || null,
+        diagnosis.confidence || null,
+        diagnosis.priority || null,
+        diagnosis.category || null,
+        JSON.stringify(diagnosis.evidence || [])
+      ]);
+      
+      results.push(result.rows[0]);
+    }
+
+    return results;
+  } catch (error) {
+    console.error('Error recording diagnosis history:', error);
+    throw error;
+  } finally {
+    await connection.end();
+  }
+}
+
+/**
+ * Gets user interaction history for a session
+ * @param {string} sessionId - Session identifier
+ * @param {number} limit - Maximum number of interactions to return
+ * @returns {Promise<Array>} Array of interaction records
+ */
+export async function getSessionHistory(sessionId, limit = 20) {
+  if (!sessionId) {
+    throw new Error('Session ID is required');
+  }
+
+  const connection = await createConnection();
+  
+  try {
+    const result = await connection.query(`
+      SELECT ui.*, dh.diagnosis_label, dh.diagnosis_type, dh.likelihood, dh.confidence
+      FROM user_interactions ui
+      LEFT JOIN diagnosis_history dh ON ui.id = dh.interaction_id
+      WHERE ui.session_id = $1
+      ORDER BY ui.created_at DESC
+      LIMIT $2
+    `, [sessionId, limit]);
+
+    return result.rows;
+  } catch (error) {
+    console.error('Error getting session history:', error);
+    throw error;
+  } finally {
+    await connection.end();
+  }
+}
+
+/**
+ * Gets diagnosis trends over time for analysis
+ * @param {number} days - Number of days to look back
+ * @returns {Promise<Array>} Array of diagnosis trend data
+ */
+export async function getDiagnosisTrends(days = 30) {
+  const connection = await createConnection();
+  
+  try {
+    const result = await connection.query(`
+      SELECT 
+        diagnosis_label,
+        diagnosis_type,
+        COUNT(*) as frequency,
+        AVG(likelihood) as avg_likelihood,
+        AVG(confidence) as avg_confidence,
+        DATE_TRUNC('day', created_at) as day
+      FROM diagnosis_history
+      WHERE created_at >= CURRENT_DATE - INTERVAL '${days} days'
+      GROUP BY diagnosis_label, diagnosis_type, DATE_TRUNC('day', created_at)
+      ORDER BY day DESC, frequency DESC
+    `);
+
+    return result.rows;
+  } catch (error) {
+    console.error('Error getting diagnosis trends:', error);
+    throw error;
+  } finally {
+    await connection.end();
   }
 } 

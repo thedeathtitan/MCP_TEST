@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-// MCP Server Configuration
-const MCP_SERVER_URL = "https://mcp-server-371380987858.us-central1.run.app";
+// MCP Server Configuration - Use local server for development
+const MCP_SERVER_URL = import.meta.env.VITE_MCP_API_URL || "http://localhost:3000";
 
 // Enhanced schema for comprehensive medical reasoning
 const DiagnosisSchema = z.object({
@@ -233,52 +233,46 @@ Remember: You have access to a persistent medical database that grows with each 
 Please analyze this case thoroughly and create appropriate medical nodes, then provide a detailed structured response for the advanced diagnostic visualization system.`;
 
 /**
- * Main function to analyze clinical notes using MCP server + Gemini + Database
+ * Main analysis function - uses MCP server with analyze_medical_note tool
  */
 export async function analyzeWithMCP(clinicalNote: string, apiKey?: string): Promise<MCPResponse> {
   if (!clinicalNote.trim()) {
     throw new Error('Clinical note cannot be empty');
   }
 
-  const startTime = Date.now();
-  
   try {
-    console.log('🔄 Starting MCP-based medical analysis...');
-
-    // Step 1: Initialize database connection (ensure tables exist)
-    console.log('📊 Initializing medical database...');
-    await callMCPTool('initialize_database', {});
-
-    // Step 2: Create a comprehensive prompt for Gemini
-    const medicalPrompt = getMedicalSystemPrompt(clinicalNote);
+    console.log('🔄 Starting MCP medical analysis...');
+    console.log('📄 Clinical note length:', clinicalNote.length);
     
-    // Step 3: Use Gemini through the MCP server to analyze the clinical note
-    // Note: This will automatically create nodes in the database and return structured data
-    console.log('🤖 Analyzing with Gemini + Medical Database...');
+    // Call the comprehensive medical analysis tool
+    const toolResponse = await callMCPTool('analyze_medical_note', {
+      clinical_note: clinicalNote,
+      api_key: apiKey
+    });
     
-    // For now, we'll use a hybrid approach: call our existing medical tools to build knowledge
-    // and then generate a comprehensive response
+    console.log('✅ MCP tool response received');
     
-    // First, let's extract key medical concepts and create them in the database
-    const analysisResult = await analyzeMedicalConcepts(clinicalNote);
+    // Parse the JSON response from the tool
+    let analysisData;
+    if (typeof toolResponse.content[0].text === 'string') {
+      analysisData = JSON.parse(toolResponse.content[0].text);
+    } else {
+      analysisData = toolResponse.content[0].text;
+    }
     
-    const processingTime = Date.now() - startTime;
+    console.log('📊 Analysis data parsed successfully');
+    console.log(`🎯 Found ${analysisData.nodes.length} nodes, ${analysisData.edges.length} edges`);
     
     return {
-      ...analysisResult,
-      metadata: {
-        processing_time: processingTime,
-        model_used: 'Gemini + PostgreSQL Database',
-        database_nodes_created: analysisResult.metadata?.database_nodes_created || 0,
-        database_relationships_created: analysisResult.metadata?.database_relationships_created || 0
-      }
+      nodes: analysisData.nodes,
+      edges: analysisData.edges,
+      problemList: analysisData.problemList,
+      metadata: analysisData.metadata
     };
-
-  } catch (error) {
-    console.error('❌ MCP analysis failed:', error);
     
-    // Fallback to a minimal response structure
-    return createFallbackResponse(clinicalNote, error);
+  } catch (error) {
+    console.error('❌ MCP analysis error:', error);
+    throw error;
   }
 }
 

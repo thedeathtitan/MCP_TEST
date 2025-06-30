@@ -26,7 +26,11 @@ import {
   getNode, 
   listNodes, 
   updateNode, 
-  testConnection 
+  testConnection,
+  createOrUpdateSession,
+  recordInteraction,
+  recordDiagnosisHistory,
+  getSessionHistory
 } from './lib/cloud-sql.js';
 import { ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -231,12 +235,12 @@ export const registerTools = (server) => {
     },
     async ({ nodeId, label, type }) => {
       try {
-        const updatedNode = await updateNode(nodeId, label, type);
-        if (updatedNode) {
+        const node = await updateNode(nodeId, label, type);
+        if (node) {
           return {
             content: [{
               type: 'text',
-              text: `✅ Node ${nodeId} updated successfully!\nLabel: ${updatedNode.label}\nType: ${updatedNode.type}\nUpdated: ${updatedNode.updated_at}`
+              text: `✅ Node updated successfully!\nID: ${node.id}\nLabel: ${node.label}\nType: ${node.type}\nUpdated: ${node.updated_at}`
             }]
           };
         } else {
@@ -595,6 +599,263 @@ export const registerTools = (server) => {
         };
       }
     });
+
+  // === COMPREHENSIVE MEDICAL ANALYSIS TOOL ===
+  
+  // Tool for comprehensive medical analysis - this is what the frontend expects
+  server.tool(
+    "analyze_medical_note",
+    "Performs comprehensive medical analysis of clinical notes with differential diagnosis, next actions, and problem list generation",
+    {
+      clinical_note: z.string().describe("The clinical note or patient presentation to analyze"),
+      api_key: z.string().optional().describe("Optional Gemini API key for enhanced AI analysis"),
+      session_id: z.string().optional().describe("Optional session ID for tracking user interactions")
+    },
+    async ({ clinical_note, api_key, session_id }) => {
+      const startTime = Date.now();
+      
+      try {
+        console.log('🔄 Starting comprehensive medical analysis...');
+        console.log('📄 Clinical note length:', clinical_note.length);
+        
+        // Generate session ID if not provided
+        const sessionId = session_id || `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        
+        // Track session for history
+        console.log('📊 Creating/updating user session:', sessionId);
+        await createOrUpdateSession(sessionId, 'api_user');
+        
+                  // Import OpenAI client for AI analysis
+          const OpenAI = (await import('openai')).default;
+        
+        // Use provided API key or fall back to environment variable
+        const openaiApiKey = api_key || process.env.OPENAI_API_KEY;
+        
+        if (!openaiApiKey) {
+          throw new Error('OpenAI API key required for medical analysis. Please provide via api_key parameter or OPENAI_API_KEY environment variable.');
+        }
+
+        const openai = new OpenAI({ apiKey: openaiApiKey });
+        const model = 'o3-mini';
+
+        // Comprehensive medical analysis prompt
+        const medicalPrompt = `You are an expert emergency medicine physician. Analyze this clinical presentation and provide a comprehensive medical assessment.
+
+CLINICAL PRESENTATION:
+${clinical_note}
+
+Provide a comprehensive JSON response with the following structure:
+
+{
+  "diagnosis_groups": [
+    {
+      "group_id": "primary_cardiac",
+      "group_name": "Primary Cardiac Conditions", 
+      "diagnoses": [
+        {
+          "id": "dx_1",
+          "label": "Acute Heart Failure",
+          "type": "diagnosis",
+          "likelihood": 0.9,
+          "confidence": 0.8,
+          "evidence": ["S3 gallop", "bilateral crackles", "elevated JVP", "orthopnea"],
+          "details": "Clinical presentation strongly suggests acute decompensated heart failure with fluid overload",
+          "category": "cardiac"
+        }
+      ]
+    }
+  ],
+  "next_actions": [
+    {
+      "id": "action_1",
+      "label": "Chest X-ray",
+      "type": "next_action",
+      "priority": "urgent",
+      "details": "Assess for pulmonary edema and cardiomegaly",
+      "category": "diagnostic",
+      "timing": "STAT",
+      "related_diagnosis_id": "dx_1"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel_1",
+      "source": "dx_1",
+      "target": "action_1", 
+      "relationship": "investigates",
+      "label": "confirms diagnosis",
+      "strength": "strong"
+    }
+  ],
+  "problem_list": [
+    {
+      "id": "prob_1",
+      "diagnosis": "Acute Heart Failure",
+      "icd10Code": "I50.9",
+      "likelihood": 0.9,
+      "category": "cardiac",
+      "evidence": ["S3 gallop", "bilateral crackles"],
+      "status": "active"
+    }
+  ]
+}
+
+Requirements:
+- Provide 3-5 diagnosis groups with 1-3 diagnoses each
+- Include 5-10 next actions (diagnostic, therapeutic, monitoring)
+- Create comprehensive relationships between diagnoses and actions
+- Generate accurate ICD-10 codes for problem list
+- Use clinical reasoning based on presented evidence
+- Prioritize actions appropriately (urgent/high/medium/low)
+- Return valid JSON only, no additional text`;
+
+        console.log('🤖 Calling OpenAI O3-mini for medical analysis...');
+        const result = await openai.chat.completions.create({
+          model: model,
+          messages: [
+            {
+              role: "system", 
+              content: "You are an expert emergency medicine physician. Analyze clinical presentations and provide comprehensive medical assessments in the exact JSON format requested. Return only valid JSON, no additional text."
+            },
+            {
+              role: "user",
+              content: medicalPrompt
+            }
+          ],
+          max_completion_tokens: 8000
+        });
+        const jsonText = result.choices[0].message.content;
+        
+        console.log('📄 Raw OpenAI O3-mini response:', jsonText.substring(0, 200) + '...');
+        
+        // Clean and parse JSON response
+        let cleanJson = jsonText.trim();
+        if (cleanJson.startsWith('```json')) {
+          cleanJson = cleanJson.replace(/```json\s*/, '').replace(/```\s*$/, '');
+        } else if (cleanJson.startsWith('```')) {
+          cleanJson = cleanJson.replace(/```\s*/, '').replace(/```\s*$/, '');
+        }
+        
+        const aiAnalysis = JSON.parse(cleanJson);
+        console.log('✅ AI analysis parsed successfully');
+        
+        // Store comprehensive results in database
+        console.log('💾 Storing analysis results in PostgreSQL...');
+        const createdNodes = [];
+        const createdRelationships = [];
+        
+        // Store diagnosis nodes
+        for (const group of aiAnalysis.diagnosis_groups) {
+          for (const diagnosis of group.diagnoses) {
+            const node = await createNode(diagnosis.label, diagnosis.type);
+            createdNodes.push({
+              ...node,
+              originalId: diagnosis.id,
+              likelihood: diagnosis.likelihood,
+              confidence: diagnosis.confidence,
+              evidence: diagnosis.evidence,
+              details: diagnosis.details,
+              category: diagnosis.category
+            });
+          }
+        }
+        
+        // Store action nodes
+        for (const action of aiAnalysis.next_actions) {
+          const node = await createNode(action.label, action.type);
+          createdNodes.push({
+            ...node,
+            originalId: action.id,
+            priority: action.priority,
+            details: action.details,
+            category: action.category,
+            timing: action.timing,
+            related_diagnosis_id: action.related_diagnosis_id
+          });
+        }
+        
+        console.log(`📊 Created ${createdNodes.length} nodes in database`);
+        
+        // Transform for frontend consumption
+        const frontendResponse = {
+          session_id: sessionId,
+          nodes: createdNodes.map(node => ({
+            id: node.originalId || node.id.toString(),
+            label: node.label,
+            type: node.type,
+            likelihood: node.likelihood || 0.5,
+            confidence: node.confidence || 0.5,
+            evidence: node.evidence || [],
+            details: node.details || '',
+            category: node.category || 'general',
+            priority: node.priority || 'medium',
+            timing: node.timing || '',
+            related_diagnosis_id: node.related_diagnosis_id || ''
+          })),
+          edges: aiAnalysis.relationships.map(rel => ({
+            id: rel.id,
+            source: rel.source,
+            target: rel.target,
+            relationship: rel.relationship,
+            label: rel.label,
+            strength: rel.strength
+          })),
+          problemList: aiAnalysis.problem_list.map(problem => ({
+            id: problem.id,
+            diagnosis: problem.diagnosis,
+            icd10Code: problem.icd10Code,
+            likelihood: problem.likelihood,
+            category: problem.category,
+            evidence: problem.evidence,
+            status: problem.status
+          })),
+          metadata: {
+            processing_time: Date.now() - startTime,
+            model_used: model,
+            database_nodes_created: createdNodes.length,
+            database_relationships_created: createdRelationships.length,
+            diagnosis_count: aiAnalysis.diagnosis_groups.reduce((count, group) => count + group.diagnoses.length, 0),
+            action_count: aiAnalysis.next_actions.length,
+            problem_count: aiAnalysis.problem_list.length
+          }
+        };
+        
+        // Record this interaction in history
+        console.log('📝 Recording interaction in history...');
+        const interaction = await recordInteraction(
+          sessionId,
+          clinical_note,
+          frontendResponse,
+          frontendResponse.metadata.processing_time,
+          frontendResponse.metadata.model_used,
+          frontendResponse.metadata.database_nodes_created,
+          frontendResponse.metadata.database_relationships_created
+        );
+        
+        // Record diagnosis history for tracking trends
+        const diagnosisNodes = frontendResponse.nodes.filter(node => node.type === 'diagnosis');
+        if (diagnosisNodes.length > 0) {
+          await recordDiagnosisHistory(interaction.id, diagnosisNodes);
+          console.log(`📈 Recorded ${diagnosisNodes.length} diagnoses in history`);
+        }
+        
+        console.log('🎉 Medical analysis completed successfully!');
+        console.log(`📊 Summary: ${frontendResponse.metadata.diagnosis_count} diagnoses, ${frontendResponse.metadata.action_count} actions, ${frontendResponse.metadata.problem_count} problems`);
+        console.log(`🕒 Total processing time: ${frontendResponse.metadata.processing_time}ms`);
+        
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify(frontendResponse, null, 2)
+          }]
+        };
+        
+      } catch (error) {
+        console.error('❌ Medical analysis error:', error);
+        throw error;
+      }
+    }
+  );
 };
 
 export const registerToolsRemote = async (server) => {
@@ -805,12 +1066,12 @@ export const registerToolsRemote = async (server) => {
     },
     async ({ nodeId, label, type }) => {
       try {
-        const updatedNode = await updateNode(nodeId, label, type);
-        if (updatedNode) {
+        const node = await updateNode(nodeId, label, type);
+        if (node) {
           return {
             content: [{
               type: 'text',
-              text: `✅ Node ${nodeId} updated successfully!\nLabel: ${updatedNode.label}\nType: ${updatedNode.type}\nUpdated: ${updatedNode.updated_at}`
+              text: `✅ Node updated successfully!\nID: ${node.id}\nLabel: ${node.label}\nType: ${node.type}\nUpdated: ${node.updated_at}`
             }]
           };
         } else {

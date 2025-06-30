@@ -1,6 +1,6 @@
 import { Box, Typography, Paper, IconButton, Chip } from '@mui/material';
 import { NoteInput } from './components/NoteInput';
-import { GraphBoard } from './components/GraphBoard';
+import { Graph3D } from './components/Graph3D';
 
 function App() {
   return (
@@ -85,7 +85,7 @@ function App() {
         {/* Graph Visualization */}
         <Box sx={{ flex: 1, position: 'relative', minHeight: 0, bgcolor: 'background.default' }}>
           <Box sx={{ position: 'absolute', inset: 0 }}>
-            <GraphBoard />
+            <Graph3D />
           </Box>
           
           {/* Floating Performance Indicator - Solid dark panel */}
