@@ -1,351 +1,468 @@
-# Development Notes
+# 🏥 Medical Diagnostic Assistant - Development Notes
 
-## Quick Start Commands
+## 🚀 **CURRENT SYSTEM - VERSION 2.0.0**
 
-### Project Setup
+**Architecture**: Containerized microservices with OpenAI O3-mini, Three.js 3D visualization, MCP protocol, and PostgreSQL persistence.
+
+---
+
+## ⚡ **Quick Start Commands**
+
+### **Full System Development**
 ```bash
-cd diagnosis-space
-npm install
-npm run dev
+# Navigate to project root
+cd MCP_TEST
+
+# Start complete system (all services)
+make up
+
+# Apply database migrations
+make migrate
+
+# Run comprehensive tests
+make test
+
+# View system logs
+make logs
+
+# Access endpoints:
+# Frontend: http://localhost:5173
+# Backend: http://localhost:3000
+# Database: http://localhost:5050
 ```
 
-### Key Dependencies Installed
-- `cytoscape`: Cytoscape.js v3.32 for network graphs
-- `react-cytoscapejs`: React wrapper for Cytoscape
-- `dagre`: Auto-layout algorithm for hierarchical layouts
-- `zustand`: Lightweight state management (v5.0.5)
-- `@mui/material`: Material-UI v6 component library
-- `@mui/icons-material`: Material-UI icons
-- `@emotion/react`: CSS-in-JS styling for MUI
-- `@emotion/styled`: Styled components for MUI
+### **Frontend-Only Development**
+```bash
+# Navigate to frontend directory
+cd Dspace_working
 
-## Development Workflow
+# Install dependencies
+npm install
 
-### 1. Component Development Order
-1. Set up Zustand store (`src/store/diagStore.ts`)
-2. Create NoteInput component for clinical notes
-3. Set up GraphBoard with Cytoscape.js
-4. Build interactive node expansion system
-5. Integrate OpenAI API directly in frontend
-6. Add Problem List component for billable diagnoses
+# Start development server
+npm run dev
 
-### 2. Frontend-Only Architecture
-This application uses a frontend-only architecture:
-- OpenAI API integration directly in browser
-- No backend server required
-- Secure API key storage in localStorage
-- All processing happens client-side
+# Build for production
+npm run build
+```
 
-### 3. Testing Strategy
-- Manual testing with real clinical scenarios
-- Cross-browser compatibility testing
-- Responsive design testing across devices
-- API integration testing with OpenAI
+---
 
-## Key Implementation Details
+## 🏗️ **Current Architecture Overview**
 
-### Cytoscape.js Setup
-- **Multiple Layouts**: Supports dynamic switching between several algorithms (Force, Hierarchical, Circular, etc.).
-- **Layout Controls**: Sliders and dropdowns for real-time adjustment of graph physics and appearance.
-- **Proportional Node Sizing**: Nodes sized based on diagnosis probability for better visual hierarchy
-- Node types: `diagnosis`, `differential`, `action`
-- Interactive layout with manual positioning
-- Click-to-expand node details
-- Pan, zoom, and fit-to-view controls
+### **Multi-Service Container Architecture**
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  React Frontend │    │   MCP Backend    │    │   PostgreSQL    │
+│  Three.js 3D    │◄──►│ OpenAI O3-mini   │◄──►│  Analytics DB   │
+│   (Port 5173)   │    │   (Port 3000)    │    │   (Port 5432)   │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+```
 
-### Voice Input
-- **Web Speech API**: Utilizes the browser's native speech recognition capabilities.
-- **Hands-Free Dictation**: Allows users to dictate clinical notes directly into the application, which are then transcribed to text.
+### **Technology Stack**
+| Component | Technology | Version | Purpose |
+|-----------|------------|---------|---------|
+| **Frontend** | React + TypeScript | 19.1.0 + 5.8 | UI development |
+| **3D Graphics** | Three.js + React Three Fiber | Latest | Medical visualization |
+| **UI Components** | Material-UI (MUI) | v6 | Professional design |
+| **State Management** | Zustand | 5.0+ | State with persistence |
+| **Build Tool** | Vite | 6.3+ | Development + builds |
+| **Backend** | Node.js MCP Server | 18+ | Medical AI processing |
+| **AI Model** | OpenAI O3-mini | Latest | Medical reasoning |
+| **Database** | PostgreSQL | 17 | Data persistence |
+| **Protocol** | Model Context Protocol | 2024-11-05 | AI communication |
+| **Containers** | Docker Compose | Latest | Orchestration |
 
-### Problem List Feature
-- **Billable Problem List**: Automatic generation of ICD-10 codes for billing and documentation
-- **Problem List UI**: Accessible button in graph interface that opens comprehensive problem list dialog
-- **Enhanced OpenAI Schema**: Updated JSON schema to include problem list generation with likelihood scores and clinical evidence
+---
 
-### State Management
-- Single Zustand store for simplicity
-- Separate slices for note text, graph data, and problem list
-- Loading states for API calls
+## 🔧 **Key Implementation Details**
 
-### Styling Approach
-- **Material-UI (MUI v6)**: Complete migration from Tailwind CSS to MUI for consistent design system
-- **Custom Dark Theme**: Global MUI theme configuration reflecting original dark color palette
-- CSS-in-JS styling for Cytoscape nodes
-- Color-coded priority system for clinical urgency
-- Responsive design patterns throughout
+### **Three.js 3D Visualization System**
+- **Replaced**: Cytoscape.js 2D graph library
+- **Current**: Three.js with React Three Fiber ecosystem
+- **Features**:
+  - 3D medical nodes (spheres, boxes, octahedrons)
+  - Dynamic sizing based on likelihood/confidence scores (0.8-2.0 scale)
+  - Medical color coding (red=urgent, green=actions, blue=diagnoses)
+  - OrbitControls for professional pan, zoom, rotate
+  - Spiral layout algorithm for medical concept positioning
+  - Floating HTML labels with medical terminology
+  - Smooth animations and selection indicators
 
-## Common Patterns
-
-### Cytoscape Node Structure
+### **Three.js Medical Node Implementation**
 ```typescript
-interface CytoscapeNode {
-  data: {
-    id: string;
-    label: string;
-    type: 'diagnosis' | 'differential' | 'action';
-    priority: 'urgent' | 'high' | 'medium' | 'low';
-    details?: string;
-    confidence?: number;
-  };
+// Current 3D node structure
+interface MedicalNode3D {
+  id: string;
+  label: string;
+  type: 'diagnosis' | 'next_action' | 'symptom';
+  position: [number, number, number];  // 3D coordinates
+  size: number;                        // Based on likelihood (0.8-2.0)
+  color: string;                       // Priority-based coloring
+  priority: 'urgent' | 'high' | 'medium' | 'low';
+  likelihood?: number;                 // 0.0-1.0 confidence score
+  evidence?: string[];                 // Clinical evidence
 }
 
-// Node styling based on type and priority
-const nodeStyles = {
-  'node[type="diagnosis"]': {
-    'background-color': '#3b82f6',
-    'color': '#ffffff'
-  }
+// Three.js medical node component
+const MedicalNode3D = ({ concept, position, likelihood, priority }) => {
+  const nodeSize = 0.8 + (likelihood * 1.2);
+  const nodeColor = priority === 'urgent' ? 'red' : 
+                   priority === 'high' ? 'orange' :
+                   'blue';
+  
+  return (
+    <mesh position={position}>
+      <sphereGeometry args={[nodeSize, 32, 32]} />
+      <meshStandardMaterial color={nodeColor} />
+    </mesh>
+  );
 };
 ```
 
-### API Integration Pattern
+### **OpenAI O3-mini Integration**
+- **Model**: OpenAI O3-mini for advanced medical reasoning
+- **Current API Pattern**:
 ```typescript
-const analyzeNote = async (note: string, apiKey: string) => {
-  setLoading(true);
-  try {
-    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-      model: 'gpt-4',
-      messages: [{ role: 'user', content: note }],
-      functions: [medicalAnalysisSchema]
-    }, {
-      headers: { 
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
+const analyzeMedicalNote = async (clinical_note: string, api_key: string) => {
+  const response = await openai.chat.completions.create({
+    model: 'o3-mini',
+    messages: [
+      {
+        role: "system",
+        content: "You are an expert emergency medicine physician..."
+      },
+      {
+        role: "user",
+        content: comprehensiveMedicalPrompt
       }
+    ],
+    max_completion_tokens: 8000,
+    response_format: { type: "json_object" }
+  });
+  
+  return parseComprehensiveMedicalResponse(response.choices[0].message.content);
+};
+```
+
+### **MCP Protocol Communication**
+- **Protocol**: Model Context Protocol (JSON-RPC 2.0)
+- **Transport**: HTTP with fallback strategies
+- **Tools**: Medical analysis exposed as discoverable MCP tools
+
+```typescript
+// MCP client communication pattern
+const mcpClient = {
+  async callTool(name: string, args: any) {
+    const response = await fetch('/mcp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'tools/call',
+        params: { name, arguments: args },
+        id: Date.now()
+      })
     });
-    setGraph(processOpenAIResponse(response.data));
-  } catch (error) {
-    // Handle API errors
-  } finally {
-    setLoading(false);
+    return response.json();
   }
 };
 ```
 
-## Troubleshooting
+### **PostgreSQL Database Integration**
+- **Current Schema**: Complete medical analytics and session tracking
+```sql
+-- Medical concepts storage
+CREATE TABLE nodes (
+  id SERIAL PRIMARY KEY,
+  label VARCHAR(255) NOT NULL,
+  type VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-### Common Issues
-1. **Cytoscape not rendering**: Ensure container has defined height/width
-2. **Layout positioning problems**: Check node data format and IDs
-3. **State not updating**: Verify Zustand store subscriptions
-4. **API key errors**: Check localStorage and OpenAI API key validity
+-- User session analytics
+CREATE TABLE user_interactions (
+  id SERIAL PRIMARY KEY,
+  session_id VARCHAR(255) NOT NULL,
+  clinical_note TEXT NOT NULL,
+  analysis_result JSONB,
+  processing_time INTEGER,
+  model_used VARCHAR(100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-### Performance Tips
-- Use React.memo for frequently re-rendering components
-- Debounce API calls to avoid excessive requests
-- Optimize Cytoscape graph updates with batch operations
-- Implement proper cleanup for event listeners
+-- Historical diagnosis tracking
+CREATE TABLE diagnosis_history (
+  id SERIAL PRIMARY KEY,
+  interaction_id INTEGER NOT NULL,
+  diagnosis_label VARCHAR(255) NOT NULL,
+  likelihood DECIMAL(3,2),
+  confidence DECIMAL(3,2),
+  evidence JSONB,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
-## Architecture Decisions
-
-### Why Cytoscape.js?
-- Mature, battle-tested graph visualization library
-- Excellent performance with large datasets
-- Flexible styling and layout options
-- Strong community and documentation
-
-### Why Zustand over Redux?
-- Minimal boilerplate
-- Direct store subscriptions
-- TypeScript-friendly
-- Smaller bundle size
-
-### Why Frontend-Only Architecture?
-- Simplified deployment and hosting
-- Better privacy (no data sent to backend)
-- Direct OpenAI API integration
-- Easier maintenance and updates
-
-## API Design Notes
-
-### OpenAI Integration
+### **State Management (Zustand)**
 ```typescript
-// Direct API calls to OpenAI
-const openaiRequest = {
-  model: 'gpt-4',
-  messages: [...],
-  functions: [medicalAnalysisSchema],
-  temperature: 0.1
-};
+interface DiagStore {
+  // Core state
+  note: string;
+  apiKey: string;
+  graph: MedicalGraph;
+  problemList: ProblemListItem[];
+  sessionId: string;
+  
+  // 3D visualization state
+  selectedNode: string | null;
+  cameraPosition: [number, number, number];
+  
+  // Loading and error states
+  isLoading: boolean;
+  error: string | null;
+  
+  // Actions
+  setNote: (note: string) => void;
+  setApiKey: (key: string) => void;
+  setGraph: (graph: MedicalGraph) => void;
+  analyzeNote: () => Promise<void>;
+  
+  // MCP communication
+  callMCPTool: (toolName: string, args: any) => Promise<any>;
+}
 ```
 
-### Error Handling
-- 401: Invalid API key
-- 429: Rate limit exceeded
-- 500: OpenAI service errors
-- Network errors with retry logic
+---
 
-## Future Enhancements
+## 🛠️ **Development Workflow**
 
-### Phase 2 Features
-- Real-time collaboration
-- Graph versioning/history
-- Custom node templates
-- Export functionality
+### **Container-Based Development**
+```bash
+# Complete system management
+make up                    # Start all services
+make down                  # Stop all services
+make restart               # Restart all services
+make clean                 # Clean up containers
 
-### Integration Possibilities
-- EMR system connections
-- FHIR data import/export
-- Clinical decision support rules
-- Audit logging for compliance
+# Individual service management
+make restart-frontend      # Restart only frontend
+make restart-backend       # Restart only backend
+make restart-db           # Restart only database
 
-## Useful Resources
-- [Cytoscape.js Documentation](https://js.cytoscape.org/)
-- [React Cytoscape.js](https://github.com/plotly/react-cytoscapejs)
-- [Zustand Guide](https://github.com/pmndrs/zustand)
-- [OpenAI API Documentation](https://platform.openai.com/docs/api-reference)
-- [Material-UI Documentation](https://mui.com/material-ui/getting-started/overview/)
+# Development helpers
+make logs                  # View all service logs
+make logs-frontend        # Frontend logs only
+make logs-backend         # Backend logs only
+make logs-db              # Database logs only
 
-## Architecture Overview
-
-### MCP Integration Architecture
-The application now uses a custom MCP (Model Context Protocol) client that provides bulletproof JSON handling for OpenAI responses. This ensures consistent, structured output even when the AI model returns malformed JSON.
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   React App     │───▶│   MCP Client    │───▶│   OpenAI API    │
-│                 │    │                 │    │                 │
-│ - Note Input    │    │ - JSON Parsing  │    │ - GPT-4o        │
-│ - Graph Display │    │ - Fallbacks     │    │ - Function Call │
-│ - Problem List  │    │ - Validation    │    │ - Whisper       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       ▼                       │
-         │              ┌─────────────────┐              │
-         └──────────────│   Fallback      │◀─────────────┘
-                        │   Strategy      │
-                        │                 │
-                        │ - Direct OpenAI │
-                        │ - Retry Logic   │
-                        │ - Error Handle  │
-                        └─────────────────┘
+# Testing and validation
+make test                 # Run comprehensive tests
+make test-frontend        # Frontend tests only
+make test-backend         # Backend tests only
+make test-db              # Database connectivity tests
 ```
 
-### JSON Handling Strategies
+### **Environment Configuration**
+```bash
+# Local Development (.env.local)
+NODE_ENV=development
+OPENAI_API_KEY=your_openai_api_key_here
+DATABASE_URL=postgresql://mcp_user:dev_password_123@db:5432/mcp_diagnostics
+VITE_MCP_API_URL=http://localhost:3000
+POSTGRES_PASSWORD=dev_password_123
+PGADMIN_PASSWORD=admin123
 
-The MCP client implements four progressive strategies for handling OpenAI responses:
+# Production (env.production.template)
+NODE_ENV=production
+CLOUD_SQL_CONNECTION_NAME=project:region:instance
+DATABASE_URL=postgresql://user:pass@127.0.0.1:5432/db
+OPENAI_API_KEY=set_via_secret_manager
+```
 
-1. **Direct JSON Response**: Attempts to parse the response as direct JSON
-2. **Markdown Extraction**: Extracts JSON from markdown code blocks
-3. **Pattern Matching**: Finds JSON-like structures in text responses
-4. **Minimal Valid Structure**: Returns a basic emergency assessment structure
+---
 
-### Medical Knowledge Integration
+## 🧪 **Testing Strategy**
 
-The system includes a comprehensive medical knowledge base covering:
-- Emergency medicine principles (ABCDE approach)
-- Common presentations by system
-- ICD-10 code database
-- Diagnostic and treatment algorithms
+### **Comprehensive Test Coverage**
+```bash
+# All systems testing
+make test                    # Full integration tests
 
-## Key Components
+# Component testing
+curl http://localhost:3000/health    # Backend health
+curl http://localhost:5173           # Frontend health
+psql postgresql://mcp_user:dev_password_123@localhost:5432/mcp_diagnostics
 
-### MCP Client (`src/utils/mcpClient.ts`)
-- **Purpose**: Provides bulletproof JSON handling for OpenAI responses
-- **Features**: Multiple fallback strategies, schema validation, medical knowledge integration
-- **Dependencies**: OpenAI SDK, Zod for validation
+# Manual testing scenarios
+1. Medical note analysis with O3-mini
+2. 3D visualization rendering and interaction
+3. Database persistence of interactions
+4. MCP protocol tool discovery and execution
+5. Error handling and recovery
+```
 
-### OpenAI Integration (`src/utils/openai.ts`)
-- **Purpose**: Main interface for AI analysis with MCP fallback
-- **Features**: MCP client integration, fallback to direct calls, error handling
-- **Dependencies**: MCP client, OpenAI API
+### **Performance Testing**
+```bash
+# Performance benchmarks
+- AI Analysis: < 5 seconds for complex cases
+- 3D Rendering: 60 FPS smooth visualization
+- Database Queries: < 100ms for standard operations
+- Container Startup: < 30 seconds full system
+- Memory Usage: < 2GB total system footprint
+```
 
-### State Management (`src/store/diagStore.ts`)
-- **Purpose**: Centralized state management using Zustand
-- **Features**: Graph data, problem list, loading states, API key management
+---
 
-## Data Flow
+## 🔍 **Troubleshooting & Debugging**
 
-1. **User Input**: Clinical note entered via text or voice
-2. **MCP Analysis**: MCP client processes note with medical knowledge
-3. **JSON Validation**: Zod schemas validate response structure
-4. **Fallback Handling**: Multiple strategies ensure valid output
-5. **State Update**: Validated data updates React state
-6. **UI Rendering**: Graph and problem list display updated data
+### **Common Development Issues**
+1. **Container Connection Issues**
+   ```bash
+   # Check service health
+   make logs
+   docker-compose ps
+   
+   # Restart problematic service
+   make restart-backend
+   ```
 
-## Error Handling
+2. **Database Connection Problems**
+   ```bash
+   # Test database connectivity
+   make test-db
+   
+   # Access database directly
+   make db-shell
+   ```
 
-### MCP Client Errors
-- **JSON Parsing Failures**: Automatic fallback to next strategy
-- **Schema Validation Errors**: Logged with detailed error information
-- **API Errors**: Retry logic with exponential backoff
+3. **Frontend 3D Rendering Issues**
+   ```bash
+   # Check Three.js console errors
+   # Verify WebGL support in browser
+   # Test with different browsers
+   ```
 
-### OpenAI API Errors
-- **Rate Limiting**: Built-in request throttling
-- **Network Issues**: Retry with backoff strategy
-- **Invalid Responses**: Fallback to direct OpenAI calls
+4. **OpenAI API Integration Issues**
+   ```bash
+   # Verify API key in .env.local
+   # Check API usage limits
+   # Test with curl directly
+   ```
 
-## Performance Considerations
+### **Performance Optimization Tips**
+- Use React.memo for Three.js components
+- Implement object pooling for 3D nodes
+- Debounce MCP API calls
+- Optimize database queries with indexes
+- Use compression for Docker images
 
-### MCP Client Optimization
-- **Caching**: Medical knowledge base cached in memory
-- **Lazy Loading**: Strategies loaded only when needed
-- **Efficient Parsing**: Optimized JSON parsing algorithms
+---
 
-### React App Optimization
-- **Memoization**: Components memoized to prevent unnecessary re-renders
-- **State Updates**: Batched state updates for better performance
-- **Graph Rendering**: Cytoscape optimized for large datasets
+## 📊 **Database Management**
 
-## Testing Strategy
+### **Migration Management**
+```bash
+# Apply database migrations
+make migrate
 
-### Unit Tests
-- **MCP Client**: Test each JSON parsing strategy
-- **Schema Validation**: Test Zod schemas with various inputs
-- **Error Handling**: Test fallback mechanisms
+# Check migration status
+make migrate-info
 
-### Integration Tests
-- **OpenAI Integration**: Test MCP client with OpenAI API
-- **State Management**: Test Zustand store updates
-- **UI Components**: Test React component interactions
+# Reset database (WARNING: destroys data)
+make db-reset
+```
 
-### End-to-End Tests
-- **User Workflows**: Test complete analysis workflows
-- **Error Scenarios**: Test error handling and recovery
-- **Performance**: Test with large datasets
+### **Analytics Queries**
+```sql
+-- Most common diagnoses
+SELECT diagnosis_label, COUNT(*) as frequency, AVG(likelihood) as avg_confidence
+FROM diagnosis_history 
+GROUP BY diagnosis_label 
+ORDER BY frequency DESC;
 
-## Deployment Considerations
+-- Processing time analysis
+SELECT model_used, AVG(processing_time) as avg_time, COUNT(*) as interactions
+FROM user_interactions 
+GROUP BY model_used;
 
-### Environment Variables
-- **OpenAI API Key**: Required for AI functionality
-- **Environment**: Development vs production settings
-- **Logging**: Error logging and monitoring
+-- User session analytics
+SELECT DATE(created_at) as date, COUNT(DISTINCT session_id) as unique_sessions
+FROM user_interactions 
+GROUP BY DATE(created_at) 
+ORDER BY date DESC;
+```
 
-### Build Optimization
-- **Bundle Size**: Code splitting for better performance
-- **Tree Shaking**: Remove unused code
-- **Minification**: Optimize for production
+---
 
-## Future Enhancements
+## 🚀 **Deployment & Production**
 
-### Planned Features
-- **Local MCP Server**: Standalone MCP server process
-- **Advanced Medical Knowledge**: Expanded medical database
-- **Real-time Collaboration**: Multi-user support
-- **Export Features**: PDF reports and data export
+### **Cloud Run Deployment**
+```bash
+# Build for production
+make prod-build
 
-### Technical Improvements
-- **WebSocket Integration**: Real-time updates
-- **Offline Support**: Service worker for offline functionality
-- **Advanced Analytics**: Usage analytics and insights
-- **Performance Monitoring**: Real-time performance tracking
+# Deploy to Google Cloud Run
+gcloud run deploy mcp-backend --source ./my_cloud_run_mcp
+gcloud run deploy frontend --source ./Dspace_working
 
-## Development Guidelines
+# Set up Cloud SQL
+gcloud sql instances create mcp-diagnostics \
+  --database-version=POSTGRES_17 \
+  --tier=db-f1-micro \
+  --region=us-central1
+```
 
-### Code Style
-- **TypeScript**: Strict type checking enabled
-- **ESLint**: Consistent code formatting
-- **Prettier**: Automatic code formatting
-- **Comments**: Comprehensive documentation
+### **Monitoring & Logging**
+```bash
+# Cloud Run logs
+gcloud run logs read mcp-backend --region=us-central1
 
-### Git Workflow
-- **Feature Branches**: Create branches for new features
-- **Commit Messages**: Descriptive commit messages
-- **Pull Requests**: Code review for all changes
-- **Versioning**: Semantic versioning for releases
+# Local monitoring
+make logs           # All services
+make health         # Health check endpoints
+```
 
-### Documentation
-- **API Documentation**: Comprehensive API docs
-- **Component Documentation**: Storybook for components
-- **User Guides**: Step-by-step user instructions
-- **Developer Guides**: Setup and contribution guides
+---
+
+## 🔮 **Future Development Roadmap**
+
+### **Version 2.1.0 - Enhanced AI Capabilities**
+- [ ] Multi-model integration (GPT-4, Claude, Gemini)
+- [ ] Specialty-specific medical reasoning modules
+- [ ] SNOMED CT integration
+- [ ] Evidence-based medicine with PubMed integration
+
+### **Version 2.2.0 - Advanced 3D Features**
+- [ ] Force-directed graph physics
+- [ ] Visual connections between medical concepts
+- [ ] Temporal visualization of diagnostic progression
+- [ ] VR/AR support for immersive experiences
+
+### **Version 3.0.0 - Enterprise Features**
+- [ ] Multi-tenant architecture
+- [ ] FHIR integration
+- [ ] Comprehensive audit logging
+- [ ] API rate limiting and security
+
+---
+
+## 📚 **Development Resources**
+
+### **Core Technologies**
+- **[Three.js Documentation](https://threejs.org/docs/)**
+- **[React Three Fiber](https://docs.pmnd.rs/react-three-fiber)**
+- **[Material-UI Documentation](https://mui.com/)**
+- **[OpenAI API Reference](https://platform.openai.com/docs/)**
+- **[PostgreSQL Documentation](https://www.postgresql.org/docs/)**
+
+### **Project Documentation**
+- **[Main README](../README.md)**: Complete project overview
+- **[Backend README](../my_cloud_run_mcp/README.md)**: MCP server docs
+- **[Project Status](PROJECT_STATUS.md)**: Current status
+- **[Troubleshooting](../TROUBLESHOOTING_SCRATCHPAD.md)**: Common issues
+
+---
+
+**🏥 Production-Ready Development Environment** | **Built for Healthcare Innovation**
+
+*Last Updated: January 2025 | System Version 2.0.0 | Status: OPERATIONAL*

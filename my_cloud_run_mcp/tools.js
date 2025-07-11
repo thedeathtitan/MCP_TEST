@@ -636,7 +636,7 @@ export const registerTools = (server) => {
         }
 
         const openai = new OpenAI({ apiKey: openaiApiKey });
-        const model = 'o3-mini';
+        const model = 'o3';
 
         // Comprehensive medical analysis prompt
         const medicalPrompt = `You are an expert emergency medicine physician. Analyze this clinical presentation and provide a comprehensive medical assessment.
@@ -709,7 +709,7 @@ Requirements:
 - Prioritize actions appropriately (urgent/high/medium/low)
 - Return valid JSON only, no additional text`;
 
-        console.log('🤖 Calling OpenAI O3-mini for medical analysis...');
+        console.log('🤖 Calling OpenAI O3 for medical analysis...');
         const result = await openai.chat.completions.create({
           model: model,
           messages: [
@@ -726,7 +726,7 @@ Requirements:
         });
         const jsonText = result.choices[0].message.content;
         
-        console.log('📄 Raw OpenAI O3-mini response:', jsonText.substring(0, 200) + '...');
+        console.log('📄 Raw OpenAI O3 response:', jsonText.substring(0, 200) + '...');
         
         // Clean and parse JSON response
         let cleanJson = jsonText.trim();

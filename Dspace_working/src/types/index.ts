@@ -54,6 +54,18 @@ export interface AnalysisResponse {
   };
 }
 
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'ai';
+  content: string;
+  createdAt: Date;
+  isStreaming?: boolean;
+  metadata?: {
+    analysisId?: string;
+    hasAnalysis?: boolean;
+  };
+}
+
 export interface DiagnosisState {
   note: string;
   graph: {
@@ -61,19 +73,29 @@ export interface DiagnosisState {
     edges: DiagnosisEdge[];
   };
   problemList: ProblemListItem[];
+  messages: ChatMessage[];
   isLoading: boolean;
+  isStreaming: boolean;
   error: string | null;
   apiKey: string;
   isRecording: boolean;
   isTranscribing: boolean;
+  isFullScreen: boolean;
+  viewMode: 'linear' | '3d';
   setNote: (note: string) => void;
   setGraph: (graph: { nodes: DiagnosisNode[]; edges: DiagnosisEdge[] }) => void;
   setProblemList: (problemList: ProblemListItem[]) => void;
   setLoading: (loading: boolean) => void;
+  setStreaming: (streaming: boolean) => void;
   setError: (error: string | null) => void;
   setApiKey: (apiKey: string) => void;
   setRecording: (recording: boolean) => void;
   setTranscribing: (transcribing: boolean) => void;
+  setFullScreen: (fullScreen: boolean) => void;
+  setViewMode: (viewMode: 'linear' | '3d') => void;
+  addMessage: (message: ChatMessage) => void;
+  updateMessage: (id: string, updates: Partial<ChatMessage>) => void;
+  clearChat: () => void;
   analyzeNote: (note: string) => Promise<void>;
   transcribeAudio: (audioBlob: Blob) => Promise<string>;
 }
