@@ -62,7 +62,7 @@ const DIAGNOSIS_SCHEMA = {
             id: { type: 'string', description: 'Unique identifier' },
             label: { type: 'string', description: 'Action description' },
             type: { type: 'string', enum: ['next_action'], description: 'Node type for triangular visualization' },
-            priority: { type: 'string', enum: ['urgent', 'high', 'medium', 'low'], description: 'Action priority' },
+            priority: { type: 'string', enum: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'], description: 'Action priority' },
             details: { type: 'string', description: 'Why this action is recommended' },
             category: { type: 'string', enum: ['diagnostic', 'therapeutic', 'monitoring', 'consultation'], description: 'Action category' },
             timing: { type: 'string', description: 'When this should be done' },
@@ -149,23 +149,35 @@ export async function analyzeWithOpenAI(clinicalNote: string, apiKey?: string, r
     const mcpResponse = await analyzeWithMCP(clinicalNote, apiKey);
     
     // Transform MCP response to the expected format for the frontend
-    const nodes: DiagnosisNode[] = mcpResponse.nodes.map((node, index) => ({
-      id: node.id,
-      position: { x: 100 + (index * 200), y: 100 + (index * 100) },
-      data: {
+    console.log('🔄 Transforming MCP response with', mcpResponse.nodes.length, 'nodes');
+    
+    const nodes: DiagnosisNode[] = mcpResponse.nodes.map((node, index) => {
+      const transformedNode = {
         id: node.id,
-        label: node.label,
-        type: node.type,
-        likelihood: node.likelihood || 0.5,
-        confidence: node.confidence || 0.5,
-        evidence: node.evidence || [],
-        details: node.details || '',
-        category: node.category || 'general',
-        priority: (node.priority || 'medium') as 'urgent' | 'high' | 'medium' | 'low',
-        timing: node.timing || '',
-        related_diagnosis_id: node.related_diagnosis_id || ''
-      }
-    }));
+        position: { x: 100 + (index * 200), y: 100 + (index * 100) },
+        data: {
+          id: node.id,
+          label: node.label,
+          type: node.type,
+          likelihood: node.likelihood || 0.5,
+          confidence: node.confidence || 0.5,
+          evidence: node.evidence || [],
+          details: node.details || '',
+          category: node.category || 'general',
+          priority: (node.priority || 'MEDIUM') as 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW',
+          urgency: node.urgency as 'IMMEDIATE' | 'HOURS' | 'DAYS' | 'FOLLOW_UP' | undefined,
+          timing: node.timing || '',
+          related_diagnosis_id: node.related_diagnosis_id || '',
+          swimlane: node.swimlane as 'CRITICAL' | 'CARDIOVASCULAR' | 'RESPIRATORY' | 'NEUROLOGICAL' | 'INFECTIOUS' | 'DIAGNOSTIC' | 'ROUTINE' | undefined,
+          attention_required: node.attention_required,
+          time_sensitive: node.time_sensitive,
+          system_involvement: node.system_involvement
+        }
+      };
+      
+      console.log(`🔄 Transformed node ${node.id}: swimlane=${node.swimlane}, priority=${node.priority}`);
+      return transformedNode;
+    });
 
     const edges: DiagnosisEdge[] = mcpResponse.edges.map(edge => ({
       id: edge.id,
@@ -189,6 +201,15 @@ export async function analyzeWithOpenAI(clinicalNote: string, apiKey?: string, r
     console.log(`📊 Processing time: ${mcpResponse.metadata?.processing_time}ms`);
     console.log(`🔬 Model used: ${mcpResponse.metadata?.model_used}`);
     console.log(`💾 Database nodes created: ${mcpResponse.metadata?.database_nodes_created}`);
+    console.log(`🎨 Nodes by type:`, {
+      diagnoses: nodes.filter(n => n.data.type === 'diagnosis').length,
+      actions: nodes.filter(n => n.data.type === 'next_action').length
+    });
+    console.log(`🏊 Nodes by swimlane:`, nodes.reduce((acc, node) => {
+      const swimlane = node.data.swimlane || 'unassigned';
+      acc[swimlane] = (acc[swimlane] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>));
 
     return { nodes, edges, problemList };
     

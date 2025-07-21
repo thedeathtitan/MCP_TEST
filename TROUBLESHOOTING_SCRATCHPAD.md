@@ -46,7 +46,7 @@ The container is still not finding the OpenAI package! This means either:
 Need to check:
 1. What error occurs during ACTUAL medical analysis call
 2. Is API key being passed correctly?
-3. Is OpenAI model name correct? (o3-mini might not exist)
+3. Is OpenAI model name correct? (o3 might not exist)
 4. Check frontend → backend communication
 
 ## NEXT STEPS

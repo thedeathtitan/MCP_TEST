@@ -1,51 +1,55 @@
-# MCP Diagnostics System - Containerized Setup
+# 🏥 Medical Diagnostic Assistant - AI-Powered 3D Diagnostic System
 
-A containerized Medical Diagnostic Assistant system built with Node.js/Python backend (MCP server) and React frontend, designed to run locally with easy deployment to Google Cloud Run.
+A comprehensive medical diagnostic assistant that combines **OpenAI O3** reasoning, **interactive 3D visualization**, **PostgreSQL analytics**, and **Model Context Protocol (MCP)** architecture for intelligent clinical decision support.
 
-## 🏗️ Architecture
+## 🎯 System Overview
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │  React Frontend │    │   MCP Backend    │    │   PostgreSQL    │
-│   (Port 5173)   │◄──►│ Node.js + Python │◄──►│   (Port 5432)   │
-│     + Vite      │    │   (Port 3000)    │    │                 │
+│  Three.js 3D    │◄──►│ OpenAI O3   │◄──►│  Analytics DB   │
+│   (Port 5173)   │    │   (Port 3000)    │    │   (Port 5432)   │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
                                 │
                                 ▼
                     ┌──────────────────┐
                     │  Cloud SQL Auth  │
                     │  Proxy (5433)    │
-                    │ (Optional/Cloud) │
+                    │ (Production)     │
                     └──────────────────┘
 ```
 
-## ✨ Recent Improvements
+## ✨ Key Features
 
-This system has been recently optimized and containerized with the following enhancements:
+### 🤖 **AI-Powered Medical Analysis**
+- **OpenAI O3 Integration**: Advanced medical reasoning and diagnostic analysis
+- **Structured Clinical Prompts**: Emergency medicine expertise built into prompts
+- **Evidence-Based Diagnostics**: Likelihood scoring with clinical evidence
+- **ICD-10 Problem Lists**: Automatic generation of billable medical codes
 
-### 🔧 **Infrastructure Fixes**
-- ✅ **Port Mapping**: Fixed frontend container mapping from `5173:5173` to `5173:80` (nginx)
-- ✅ **Database Connection**: Enhanced connection logic to support both local PostgreSQL and Cloud SQL
-- ✅ **Dependencies**: Added missing PostgreSQL drivers (`psycopg2-binary`, `sqlalchemy`)
-- ✅ **Docker Compose**: Removed obsolete configuration and fixed service dependencies
+### 🎨 **Interactive 3D Visualization**
+- **Three.js Knowledge Graphs**: Immersive 3D medical concept visualization
+- **Dynamic Node Sizing**: Diagnosis confidence represented visually
+- **Medical Color Coding**: Urgency-based coloring (red=urgent, green=actions)
+- **Interactive Navigation**: Hover, click, rotate, and zoom controls
 
-### 🧪 **Testing Improvements**
-- ✅ **Test Scripts**: Updated test URLs from production to local endpoints
-- ✅ **npm Scripts**: Added generic `test` script for consistent test execution
-- ✅ **TypeScript**: Relaxed unused variable checking for development workflow
-- ✅ **Comprehensive Tests**: All 6 database operation tests now passing
+### 🗄️ **Persistent Data Analytics**
+- **PostgreSQL Database**: Full persistence of all diagnostic sessions
+- **User Session Tracking**: Historical analysis and pattern recognition
+- **Diagnosis Trends**: Medical pattern analytics over time
+- **Evidence Storage**: Complete clinical reasoning chains stored
 
-### 📚 **Documentation & Cleanup**
-- ✅ **README**: Comprehensive documentation with troubleshooting guide
-- ✅ **File Structure**: Removed redundant documentation and temporary files
-- ✅ **Troubleshooting**: Added specific solutions for common issues
-- ✅ **Development Workflow**: Clear commands and setup instructions
+### 🛡️ **MCP Architecture**
+- **Model Context Protocol**: Standardized AI agent communication
+- **Tool-Based Design**: Medical analysis as discoverable tools
+- **Scalable Framework**: Easy addition of new diagnostic capabilities
+- **Transport Flexibility**: HTTP, SSE, and stdio transports
 
-### 🚀 **Developer Experience**
-- ✅ **Quick Start**: 3-step setup process (`make setup`, `make up`, `make migrate`)
-- ✅ **Hot Reload**: Both frontend and backend support live reloading
-- ✅ **Health Checks**: All services include proper health monitoring
-- ✅ **Error Handling**: Improved error messages and debugging capabilities
+### 🐳 **Production-Ready Infrastructure**
+- **Docker Containerization**: Complete multi-service setup
+- **Health Monitoring**: Comprehensive health checks for all services
+- **Cloud SQL Ready**: Google Cloud SQL integration for production
+- **Local Development**: Full-featured local development environment
 
 ---
 
@@ -53,366 +57,308 @@ This system has been recently optimized and containerized with the following enh
 
 ### Prerequisites
 
-- Docker and Docker Compose
-- Node.js 18+ (for local development)
-- Python 3.11+ (for local development)
-- Google Cloud CLI (for cloud deployment)
+- **Docker & Docker Compose**
+- **OpenAI API Key** (for O3 model)
+- **Node.js 18+** (for local development)
+- **Google Cloud CLI** (for cloud deployment)
 
-### 1. Setup
+### 1. Initial Setup
 
 ```bash
-# Clone and navigate to the repository
+# Clone and navigate
+git clone <repository-url>
 cd MCP_TEST
 
-# Initial setup (copies environment template)
-make setup
+# Copy environment template
+cp env.local.template .env.local
 
-# Edit your local environment variables
+# Add your OpenAI API key
 nano .env.local
+# Set: OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-### 2. Start Development Environment
+### 2. Start the System
 
 ```bash
-# Start all services (frontend, backend, database, pgAdmin)
+# Start all services (database, backend, frontend)
 make up
 
-# Or start with logs visible
-make dev
-```
-
-### 3. Access Services
-
-- **Frontend**: http://localhost:5173
-- **MCP Backend**: http://localhost:3000
-- **pgAdmin**: http://localhost:5050 (admin@example.com / admin123)
-- **Database**: localhost:5432
-
-### 4. Run Database Migrations
-
-```bash
-# Apply database schema
+# Apply database migrations
 make migrate
+
+# View logs to confirm everything is working
+make logs
 ```
 
-## 📋 Available Commands
+### 3. Access the System
+
+- **🎯 Medical Interface**: http://localhost:5173
+- **🔧 MCP Backend**: http://localhost:3000
+- **📊 Database Admin**: http://localhost:5050 (admin@example.com / admin123)
+- **💾 PostgreSQL**: localhost:5432
+
+## 📋 Development Commands
 
 ```bash
 make help                 # Show all available commands
-make setup               # Initial setup
-make up                  # Start all services
-make dev                 # Start with hot reload
+make setup               # Initial setup with environment template
+make up                  # Start all services in background
+make dev                 # Start with live logs visible
 make down                # Stop all services
-make logs                # View logs
-make migrate             # Run database migrations
-make test                # Run all tests
+make restart             # Restart specific services
+make logs                # View combined logs
+make logs-backend        # View backend logs only
+make logs-frontend       # View frontend logs only
+make migrate             # Apply database migrations
+make test                # Run comprehensive test suite
 make clean               # Clean up Docker resources
 ```
 
-## 🛠️ Development Workflow
+## 🔬 How It Works
 
-### Local Development
-
-1. **Start the stack**: `make up`
-2. **Run migrations**: `make migrate`
-3. **Start developing**: Services auto-reload on file changes
-4. **View logs**: `make logs` or `make logs-backend`
-5. **Database access**: `make db-shell` or use pgAdmin
-
-### Testing
-
-```bash
-make test              # Run all tests
-make test-backend      # Backend tests only
-make test-mcp          # Test MCP server functionality
-make test-db           # Test database connectivity
+### 1. **Medical Analysis Flow**
+```
+Clinical Note → MCP Client → OpenAI O3 → JSON Response → PostgreSQL Storage → 3D Visualization
 ```
 
-### Database Management
+### 2. **OpenAI Integration** (`tools.js`)
+```javascript
+// Advanced medical reasoning with O3
+const result = await openai.chat.completions.create({
+  model: 'o3',
+  messages: [
+    {
+      role: "system", 
+      content: "You are an expert emergency medicine physician..."
+    },
+    {
+      role: "user",
+      content: comprehensiveMedicalPrompt
+    }
+  ],
+  max_completion_tokens: 8000
+});
+```
 
-```bash
-make migrate           # Apply migrations
-make migrate-info      # Show migration status
-make db-shell          # PostgreSQL shell access
-make db-reset          # Reset database (destroys data!)
+### 3. **3D Visualization** (`Graph3D.tsx`)
+```javascript
+// Three.js 3D spiral layout with medical properties
+const nodes3D = useMemo(() => {
+  return graph.nodes.map((node, index) => {
+    const angle = (index * 2.5) % (Math.PI * 2);
+    const radius = 3 + (index * 0.5);
+    const height = Math.sin(index * 0.8) * 2;
+    
+    return {
+      position: [
+        Math.cos(angle) * radius,
+        height,
+        Math.sin(angle) * radius
+      ],
+      size: basedOnLikelihood * confidence,
+      color: priorityBasedColoring
+    };
+  });
+}, [graph.nodes]);
+```
+
+### 4. **Database Persistence** (`cloud-sql.js`)
+```javascript
+// Store all diagnostic results
+await recordInteraction(
+  sessionId, 
+  clinical_note, 
+  frontendResponse,
+  processingTime,
+  'o3',
+  nodesCreated
+);
 ```
 
 ## 🏗️ Project Structure
 
 ```
 MCP_TEST/
-├── docker-compose.yml          # Main compose file
-├── Makefile                    # Development commands
-├── env.local.template          # Environment template
-├── env.production.template     # Production template
+├── 🐳 docker-compose.yml           # Multi-service orchestration
+├── 📝 Makefile                     # Development workflow commands
+├── 🔧 env.local.template           # Environment configuration
 │
-├── my_cloud_run_mcp/          # MCP Backend
-│   ├── Dockerfile             # Multi-stage Node.js + Python
-│   ├── mcp-server.js          # Main MCP server
-│   ├── package.json           # Node.js dependencies
-│   ├── requirements.txt       # Python dependencies
-│   └── tools.js               # MCP tools implementation
+├── 🖥️ Dspace_working/              # React Frontend
+│   ├── 🎨 src/components/Graph3D.tsx    # Three.js visualization
+│   ├── 📡 src/utils/mcpClient.ts        # MCP communication
+│   ├── 🎯 src/utils/openai.ts           # OpenAI integration
+│   └── 🎨 src/theme.ts                  # Material-UI theming
 │
-├── Dspace_working/            # React Frontend
-│   ├── Dockerfile             # Multi-stage React build
-│   ├── nginx.conf             # Production nginx config
-│   ├── package.json           # React dependencies
-│   └── src/                   # React source code
+├── 🤖 my_cloud_run_mcp/           # MCP Backend Server
+│   ├── 🔧 mcp-server.js                # Main MCP server
+│   ├── 🛠️ tools.js                     # Medical analysis tools
+│   ├── 🗄️ lib/cloud-sql.js             # PostgreSQL integration
+│   └── 📦 package.json                 # Node.js dependencies
 │
-└── sql/                       # Database Schema
-    ├── migrations/            # Flyway migrations
-    │   └── V1__initial_schema.sql
-    └── init/                  # Database initialization
-        └── 01_init_db.sql
+└── 🗄️ sql/                        # Database Schema
+    ├── 📋 migrations/V1__initial_schema.sql
+    └── 🔧 init/01_init_db.sql
+```
+
+## 🧪 Testing
+
+```bash
+# Comprehensive test suite
+make test                          # All tests
+make test-backend                  # Backend tests only
+make test-db                       # Database connectivity tests
+make test-mcp                      # MCP server functionality tests
+
+# Manual testing endpoints
+curl http://localhost:3000/health  # Backend health check
+curl http://localhost:5173/health  # Frontend health check
+```
+
+## 📊 Database Schema
+
+### Core Medical Tables
+```sql
+-- Medical concepts and diagnoses
+CREATE TABLE nodes (
+  id SERIAL PRIMARY KEY,
+  label VARCHAR(255) NOT NULL,     -- Medical term
+  type VARCHAR(100) NOT NULL,      -- 'diagnosis', 'next_action'
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User sessions and analytics
+CREATE TABLE user_interactions (
+  session_id VARCHAR(255) NOT NULL,
+  clinical_note TEXT NOT NULL,
+  analysis_result JSONB,           -- Full OpenAI response
+  processing_time INTEGER,
+  model_used VARCHAR(100),         -- 'o3'
+  nodes_created INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Historical diagnosis tracking
+CREATE TABLE diagnosis_history (
+  interaction_id INTEGER NOT NULL,
+  diagnosis_label VARCHAR(255),
+  likelihood DECIMAL(3,2),
+  confidence DECIMAL(3,2),
+  evidence JSONB                   -- Clinical evidence array
+);
 ```
 
 ## 🌐 Environment Configuration
 
-### Local Development (.env.local)
-
+### Local Development
 ```bash
-# Copy template and edit
-cp env.local.template .env.local
-
-# Key settings:
+# .env.local
 NODE_ENV=development
+OPENAI_API_KEY=your_openai_api_key_here
 DATABASE_URL=postgresql://mcp_user:dev_password_123@db:5432/mcp_diagnostics
-GEMINI_API_KEY=your_gemini_api_key_here
-MCP_HTTP_MODE=true
+POSTGRES_PASSWORD=dev_password_123
+PGADMIN_PASSWORD=admin123
+VITE_MCP_API_URL=http://localhost:3000
 ```
 
 ### Production (Cloud Run)
-
 ```bash
-# Use env.production.template as reference
+# env.production.template
 NODE_ENV=production
-PORT=8080
 CLOUD_SQL_CONNECTION_NAME=your-project:region:instance
 DATABASE_URL=postgresql://user:pass@127.0.0.1:5432/db
+OPENAI_API_KEY=set_via_secret_manager
 ```
 
 ## ☁️ Cloud Deployment
 
-### 1. Prepare for Cloud Run
-
+### 1. Build for Production
 ```bash
-# Build production images
 make prod-build
-
-# Check deployment readiness
-make deploy-prep
 ```
 
-### 2. Cloud SQL Setup
-
-```bash
-# Create Cloud SQL instance
-gcloud sql instances create mcp-diagnostics \
-    --database-version=POSTGRES_15 \
-    --tier=db-f1-micro \
-    --region=us-central1
-
-# Create database and user
-gcloud sql databases create mcp_diagnostics_prod --instance=mcp-diagnostics
-gcloud sql users create mcp_prod_user --instance=mcp-diagnostics --password=SECURE_PASSWORD
-```
-
-### 3. Deploy to Cloud Run
-
+### 2. Deploy to Google Cloud Run
 ```bash
 # Backend deployment
-cd my_cloud_run_mcp
 gcloud run deploy mcp-backend \
-    --source . \
-    --region=us-central1 \
-    --allow-unauthenticated \
-    --set-env-vars NODE_ENV=production \
-    --add-cloudsql-instances=PROJECT:REGION:INSTANCE
+  --source ./my_cloud_run_mcp \
+  --region=us-central1 \
+  --set-env-vars OPENAI_API_KEY=${OPENAI_API_KEY}
 
 # Frontend deployment  
-cd ../Dspace_working
-gcloud run deploy mcp-frontend \
-    --source . \
-    --region=us-central1 \
-    --allow-unauthenticated
+gcloud run deploy frontend \
+  --source ./Dspace_working \
+  --region=us-central1
 ```
 
-## 🧪 Testing the MCP Server
-
-### Local Testing
-
+### 3. Set up Cloud SQL
 ```bash
-# Test MCP functionality
-make test-mcp
-
-# Test database connectivity
-make test-db
-
-# Manual MCP inspector
-docker-compose exec mcp-backend npx @modelcontextprotocol/inspector node mcp-server.js
+gcloud sql instances create mcp-diagnostics \
+  --database-version=POSTGRES_17 \
+  --tier=db-f1-micro \
+  --region=us-central1
 ```
 
-### Production Testing
+## 🛡️ Security & Privacy
 
-```bash
-# Test deployed service
-python my_cloud_run_mcp/main.py
-```
+- **🔐 Local API Keys**: OpenAI keys stored locally, not transmitted
+- **🗄️ Data Persistence**: All analysis stored in PostgreSQL for analytics
+- **🔒 Secure Transport**: HTTPS for all cloud communications
+- **📊 Session Tracking**: Anonymous session IDs for user analytics
+- **🏥 Medical Compliance**: Designed for research and education use
 
-## 📊 Monitoring & Debugging
+## 🚨 Medical Disclaimers
 
-### View Logs
+- **⚠️ Research & Education Only**: Not intended for clinical diagnosis
+- **👨‍⚩ Professional Review Required**: All outputs need medical validation  
+- **🚫 No Medical Advice**: Tool does not replace clinical judgment
+- **📋 Documentation Only**: For educational and development purposes
 
-```bash
-make logs                    # All services
-make logs-backend           # Backend only
-make logs-frontend          # Frontend only
-make logs-db               # Database only
-```
+## 🎯 Use Cases
 
-### Health Checks
+### 👨‍⚩ **Medical Education**
+- Clinical case analysis and differential diagnosis training
+- Emergency medicine workflow visualization
+- Evidence-based reasoning demonstration
 
-```bash
-make health                 # Check service health
-curl http://localhost:3000/health  # Backend health
-curl http://localhost:5173/health  # Frontend health
-```
+### 🔬 **Research Applications**
+- Medical AI algorithm development
+- Clinical decision support research
+- Knowledge graph analysis of medical concepts
 
-### Database Debugging
+### 💻 **Development & Integration**
+- MCP server development for healthcare AI
+- Medical visualization component development
+- PostgreSQL analytics for healthcare data
 
-```bash
-make db-shell              # PostgreSQL shell
-docker-compose exec db pg_isready -U mcp_user  # Connection test
-```
+## 🏆 System Status
 
-## 🔧 Troubleshooting
+| Component | Technology | Status | Purpose |
+|-----------|------------|---------|---------|
+| **🤖 AI Analysis** | OpenAI O3 | ✅ Working | Medical reasoning |
+| **🎨 3D Visualization** | Three.js + React | ✅ Working | Interactive graphs |
+| **🛡️ MCP Protocol** | JSON-RPC 2.0 | ✅ Active | AI communication |
+| **🗄️ Database** | PostgreSQL 17 | ✅ Integrated | Full persistence |
+| **🐳 Containers** | Docker Compose | ✅ Complete | Development/Production |
 
-### Common Issues
+## 📚 Documentation
 
-#### 1. **Frontend "Site Cannot Be Reached" Error**
-**Problem**: Browser shows "This site can't be reached" when accessing http://localhost:5173
-
-**Solution**: This is usually a port mapping issue. The frontend container runs nginx on port 80, not 5173.
-```bash
-# Check current port mapping
-docker-compose ps frontend
-
-# Should show: 0.0.0.0:5173->80/tcp (not 5173->5173)
-# If incorrect, restart with correct mapping:
-docker-compose up -d frontend --force-recreate
-```
-
-#### 2. **Port Conflicts**
-**Problem**: "Port already in use" errors
-
-**Solution**: Change ports in docker-compose.yml or stop conflicting services
-```bash
-# Check what's using the port
-lsof -i :5173
-# or
-netstat -tulpn | grep 5173
-
-# Clean up and restart
-make clean
-make up
-```
-
-#### 3. **Database Connection Issues**
-**Problem**: Backend can't connect to PostgreSQL
-
-**Solution**: Check database credentials and network connectivity
-```bash
-# Check database status
-make logs-db
-docker-compose exec db pg_isready -U mcp_user
-
-# Reset database if needed
-make db-reset
-```
-
-#### 4. **Migrations Failing**
-**Problem**: Database migrations fail to apply
-
-**Solution**: Ensure database is running and accessible
-```bash
-# Ensure database is healthy
-docker-compose ps db
-# Should show: (healthy)
-
-# Run migrations
-make migrate
-
-# If still failing, reset and try again
-make db-reset
-make migrate
-```
-
-#### 5. **Frontend Not Loading Properly**
-**Problem**: Frontend loads but shows errors or blank page
-
-**Solution**: Check backend connectivity and rebuild if needed
-```bash
-# Check backend is running
-curl http://localhost:3000/health
-
-# Rebuild frontend with updated configuration
-docker-compose build frontend
-docker-compose up -d frontend --force-recreate
-```
-
-#### 6. **Test Failures**
-**Problem**: `make test` shows failing tests
-
-**Solution**: Common test issues and fixes
-```bash
-# Ensure all services are healthy
-docker-compose ps
-
-# Check specific test logs
-make test-backend
-make test-db
-
-# If pytest errors occur, they're expected (not installed)
-# The npm test should work correctly
-```
-
-### Reset Everything
-
-If you encounter multiple issues, the nuclear option:
-
-```bash
-# Complete cleanup and fresh start
-make clean                  # Clean Docker resources
-rm .env.local              # Remove local config (will need to setup again)
-make setup                 # Re-setup environment
-make up                    # Start fresh
-make migrate               # Apply database schema
-make test                  # Verify everything works
-```
-
-### Getting Help
-
-1. **Check service logs**: `make logs` or `make logs-backend`
-2. **Verify service status**: `make status`
-3. **Health checks**: `make health`
-4. **Database debugging**: `make db-shell`
-
----
-
-## 📚 Additional Resources
-
-- [Docker Compose Documentation](https://docs.docker.com/compose/)
-- [Cloud Run Documentation](https://cloud.google.com/run/docs)
-- [MCP Protocol Specification](https://modelcontextprotocol.io/)
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- **📖 [Backend README](./my_cloud_run_mcp/README.md)**: MCP server documentation
+- **🎨 [Frontend README](./Dspace_working/README.md)**: React app documentation
+- **📊 [Project Status](./Dspace_working/PROJECT_STATUS.md)**: Current development status
+- **🔧 [Troubleshooting](./TROUBLESHOOTING_SCRATCHPAD.md)**: Common issues and solutions
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make changes and test locally: `make test`
-4. Submit a pull request
+1. **Fork the repository**
+2. **Create feature branch**: `git checkout -b feature/medical-enhancement`
+3. **Make changes**: Follow TypeScript and medical coding standards
+4. **Test thoroughly**: `make test`
+5. **Submit pull request**: Include medical context and testing evidence
 
-## 📝 License
+## 📄 License
 
-This project is licensed under the Apache License 2.0 - see the LICENSE file for details. 
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**🎯 Ready for Medical AI Development** | **Built with ❤️ for Healthcare Innovation** 

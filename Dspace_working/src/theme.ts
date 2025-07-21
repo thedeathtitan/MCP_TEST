@@ -1,46 +1,79 @@
 import { createTheme } from '@mui/material/styles';
 
-// Convert Tailwind colors to MUI theme
+// ChatGPT-inspired design tokens
+const chatGPTTokens = {
+  // Spacing (8px base unit)
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 32,
+    xxl: 48,
+  },
+  // Clean color palette inspired by ChatGPT
+  colors: {
+    primary: {
+      50: '#f0fdf4',
+      100: '#dcfce7',
+      200: '#bbf7d0',
+      300: '#86efac',
+      400: '#4ade80',
+      500: '#22c55e', // ChatGPT green
+      600: '#16a34a',
+      700: '#15803d',
+      800: '#166534',
+      900: '#14532d',
+    },
+    gray: {
+      50: '#ffffff',
+      100: '#f9f9f9',
+      200: '#f1f1f1',
+      300: '#e6e6e6',
+      400: '#d1d1d1',
+      500: '#9e9e9e',
+      600: '#757575',
+      700: '#565656',
+      800: '#2f2f2f',
+      900: '#1a1a1a',
+      950: '#0a0a0a',
+    }
+  },
+  // Typography following ChatGPT's approach
+  typography: {
+    fontFamily: '"Söhne", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
+    weights: {
+      normal: 400,
+      medium: 500,
+      semibold: 600,
+      bold: 700,
+    }
+  }
+};
+
 const theme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'light',
     primary: {
-      main: '#007acc', // primary-500
-      light: '#339fff', // primary-400
-      dark: '#0062a3', // primary-600
-      50: '#e6f3ff',
-      100: '#cce7ff',
-      200: '#99cfff',
-      300: '#66b7ff',
-      400: '#339fff',
-      500: '#007acc',
-      600: '#0062a3',
-      700: '#004a7a',
-      800: '#003152',
-      900: '#001929',
+      main: chatGPTTokens.colors.primary[500],
+      light: chatGPTTokens.colors.primary[400],
+      dark: chatGPTTokens.colors.primary[600],
+      contrastText: '#ffffff',
+      ...chatGPTTokens.colors.primary,
     },
     secondary: {
-      main: '#0ea5e9', // secondary-500
-      light: '#38bdf8', // secondary-400
-      dark: '#0284c7', // secondary-600
-      50: '#f0f9ff',
-      100: '#e0f2fe',
-      200: '#bae6fd',
-      300: '#7dd3fc',
-      400: '#38bdf8',
-      500: '#0ea5e9',
-      600: '#0284c7',
-      700: '#0369a1',
-      800: '#075985',
-      900: '#0c4a6e',
+      main: chatGPTTokens.colors.gray[600],
+      light: chatGPTTokens.colors.gray[500],
+      dark: chatGPTTokens.colors.gray[700],
+      contrastText: '#ffffff',
     },
     success: {
-      main: '#10b981', // accent-500
-      light: '#34d399', // accent-400
-      dark: '#059669', // accent-600
+      main: '#10b981',
+      light: '#34d399',
+      dark: '#059669',
     },
     warning: {
-      main: '#f59e0b', // action color
+      main: '#f59e0b',
       light: '#fbbf24',
       dark: '#d97706',
     },
@@ -50,59 +83,71 @@ const theme = createTheme({
       dark: '#dc2626',
     },
     background: {
-      default: '#0a0a0a', // bg-base
-      paper: '#1e1e1e', // surface
+      default: chatGPTTokens.colors.gray[50], // Clean white background
+      paper: chatGPTTokens.colors.gray[50], // Pure white for cards
     },
     text: {
-      primary: '#ffffff', // text-primary
-      secondary: '#cccccc', // text-secondary
+      primary: chatGPTTokens.colors.gray[800], // Dark text on light background
+      secondary: chatGPTTokens.colors.gray[600], // Muted text
     },
-    divider: '#333333', // separator
+    divider: chatGPTTokens.colors.gray[200], // Subtle light borders
   },
   typography: {
-    fontFamily: '"SF Pro", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
+    fontFamily: chatGPTTokens.typography.fontFamily,
+    // Type scale inspired by ChatGPT's clean typography
     h1: {
-      fontSize: '34px',
-      lineHeight: '120%',
-      fontWeight: 600,
+      fontSize: '2rem', // 32px
+      lineHeight: 1.25,
+      fontWeight: chatGPTTokens.typography.weights.semibold,
+      letterSpacing: '-0.015em',
     },
     h2: {
-      fontSize: '28px',
-      lineHeight: '120%',
-      fontWeight: 600,
+      fontSize: '1.5rem', // 24px
+      lineHeight: 1.33,
+      fontWeight: chatGPTTokens.typography.weights.semibold,
+      letterSpacing: '-0.01em',
     },
     h3: {
-      fontSize: '22px',
-      lineHeight: '120%',
-      fontWeight: 600,
+      fontSize: '1.25rem', // 20px
+      lineHeight: 1.4,
+      fontWeight: chatGPTTokens.typography.weights.medium,
+      letterSpacing: '-0.005em',
     },
     h4: {
-      fontSize: '17px',
-      lineHeight: '120%',
-      fontWeight: 600,
+      fontSize: '1.125rem', // 18px
+      lineHeight: 1.44,
+      fontWeight: chatGPTTokens.typography.weights.medium,
     },
     h5: {
-      fontSize: '15px',
-      lineHeight: '120%',
-      fontWeight: 600,
+      fontSize: '1rem', // 16px
+      lineHeight: 1.5,
+      fontWeight: chatGPTTokens.typography.weights.medium,
     },
     h6: {
-      fontSize: '13px',
-      lineHeight: '120%',
-      fontWeight: 600,
+      fontSize: '0.875rem', // 14px
+      lineHeight: 1.57,
+      fontWeight: chatGPTTokens.typography.weights.medium,
     },
     body1: {
-      fontSize: '15px',
-      lineHeight: '120%',
-      letterSpacing: '-0.2px',
+      fontSize: '1rem', // 16px - ChatGPT uses larger base text
+      lineHeight: 1.5,
+      fontWeight: chatGPTTokens.typography.weights.normal,
     },
     body2: {
-      fontSize: '13px',
-      lineHeight: '120%',
+      fontSize: '0.875rem', // 14px
+      lineHeight: 1.43,
+      fontWeight: chatGPTTokens.typography.weights.normal,
+    },
+    caption: {
+      fontSize: '0.75rem', // 12px
+      lineHeight: 1.33,
+      fontWeight: chatGPTTokens.typography.weights.normal,
+      color: chatGPTTokens.colors.gray[600],
     },
   },
+  spacing: 8,
   shape: {
-    borderRadius: 8,
+    borderRadius: 8, // ChatGPT uses slightly larger border radius
   },
   components: {
     MuiButton: {
@@ -110,21 +155,31 @@ const theme = createTheme({
         root: {
           textTransform: 'none',
           borderRadius: 8,
-          fontWeight: 600,
-          transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+          fontWeight: chatGPTTokens.typography.weights.medium,
+          fontSize: '0.875rem',
+          lineHeight: 1.43,
+          padding: '10px 16px',
+          minHeight: 40,
+          transition: 'all 0.2s ease-in-out',
         },
         contained: {
-          boxShadow: '0px 0px 20px rgba(0, 122, 204, 0.3)',
+          backgroundColor: chatGPTTokens.colors.gray[800],
+          color: chatGPTTokens.colors.gray[50],
+          boxShadow: 'none',
           '&:hover': {
-            boxShadow: '0px 0px 20px rgba(16, 185, 129, 0.3)',
-            transform: 'scale(1.05)',
+            backgroundColor: chatGPTTokens.colors.gray[700],
+            boxShadow: 'none',
+          },
+          '&:active': {
+            backgroundColor: chatGPTTokens.colors.gray[900],
           },
         },
         outlined: {
-          borderColor: '#333333',
+          borderColor: chatGPTTokens.colors.gray[300],
+          color: chatGPTTokens.colors.gray[700],
           '&:hover': {
-            borderColor: '#007acc',
-            transform: 'translateY(-1px)',
+            borderColor: chatGPTTokens.colors.gray[400],
+            backgroundColor: chatGPTTokens.colors.gray[100],
           },
         },
       },
@@ -133,13 +188,19 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            backgroundColor: '#1e1e1e',
-            borderColor: '#333333',
-            '&:hover': {
-              borderColor: '#007acc',
+            backgroundColor: chatGPTTokens.colors.gray[50],
+            borderRadius: 12,
+            fontSize: '1rem',
+            '& fieldset': {
+              borderColor: chatGPTTokens.colors.gray[200],
+              transition: 'border-color 0.2s ease-in-out',
             },
-            '&.Mui-focused': {
-              borderColor: '#007acc',
+            '&:hover fieldset': {
+              borderColor: chatGPTTokens.colors.gray[300],
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: chatGPTTokens.colors.gray[400],
+              borderWidth: 1,
             },
           },
         },
@@ -148,19 +209,36 @@ const theme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          backgroundColor: '#1e1e1e',
-          border: '1px solid #333333',
+          backgroundColor: chatGPTTokens.colors.gray[50],
+          border: `1px solid ${chatGPTTokens.colors.gray[200]}`,
+          borderRadius: 12,
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          backgroundColor: '#1e1e1e',
-          border: '1px solid #333333',
-          boxShadow: '0px 4px 6px -1px rgba(0, 0, 0, 0.3), 0px 2px 4px -1px rgba(0, 0, 0, 0.2)',
+          backgroundColor: chatGPTTokens.colors.gray[50],
+          border: `1px solid ${chatGPTTokens.colors.gray[200]}`,
+          borderRadius: 12,
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+          transition: 'all 0.2s ease-in-out',
           '&:hover': {
-            boxShadow: '0px 10px 15px -3px rgba(0, 0, 0, 0.4), 0px 4px 6px -2px rgba(0, 0, 0, 0.3)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            borderColor: chatGPTTokens.colors.gray[300],
+          },
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          padding: 8,
+          transition: 'all 0.2s ease-in-out',
+          '&:hover': {
+            backgroundColor: chatGPTTokens.colors.gray[100],
           },
         },
       },
