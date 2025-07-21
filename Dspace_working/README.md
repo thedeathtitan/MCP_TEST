@@ -2,7 +2,7 @@
 
 ## 🎯 Interactive 3D Medical Visualization Platform
 
-A sophisticated **React** frontend application that integrates **OpenAI O3-mini** advanced reasoning with **Three.js 3D visualization** to create immersive medical diagnostic workflows. Features professional healthcare interface design, **Model Context Protocol (MCP)** integration, and persistent **PostgreSQL** analytics.
+A sophisticated **React** frontend application that integrates **OpenAI O3** advanced reasoning with **Three.js 3D visualization** to create immersive medical diagnostic workflows. Features professional healthcare interface design, **Model Context Protocol (MCP)** integration, and persistent **PostgreSQL** analytics.
 
 ![3D Medical Visualization](https://img.shields.io/badge/3D-Three.js-blue.svg)
 ![React](https://img.shields.io/badge/React-19.1-blue.svg)
@@ -12,8 +12,8 @@ A sophisticated **React** frontend application that integrates **OpenAI O3-mini*
 
 ## 🚀 **Current Features - Production Ready**
 
-### 🤖 **Advanced AI Integration (OpenAI O3-mini)**
-- **OpenAI O3-mini Reasoning**: Advanced medical reasoning with complex clinical case analysis
+### 🤖 **Advanced AI Integration (OpenAI O3)**
+- **OpenAI O3 Reasoning**: Advanced medical reasoning with complex clinical case analysis
 - **Structured Medical Prompts**: Emergency medicine expertise built into comprehensive prompts
 - **Evidence-Based Diagnostics**: Likelihood scoring with clinical evidence arrays
 - **ICD-10 Problem Lists**: Automatic generation of billable medical codes
@@ -97,14 +97,14 @@ src/
 | **UI Components** | Material-UI (MUI) | v6 | Professional healthcare design |
 | **State Management** | Zustand | 5.0+ | Lightweight state with persistence |
 | **Build Tool** | Vite | 6.3+ | Fast development + optimized builds |
-| **AI Integration** | OpenAI SDK | 4.67+ | O3-mini medical reasoning |
+| **AI Integration** | OpenAI SDK | 4.67+ | O3 medical reasoning |
 | **Protocol** | MCP Client | Custom | Standardized AI communication |
 
 ## 🚀 **Quick Start**
 
 ### **Prerequisites**
 - **Node.js 18+**
-- **OpenAI API Key** (for O3-mini access)
+- **OpenAI API Key** (for O3 access)
 - **Modern Browser** (Chrome, Firefox, Safari, Edge)
 
 ### **Development Setup**
@@ -144,7 +144,7 @@ make migrate
 ### **Basic Medical Analysis Workflow**
 1. **🔑 Configure API Key**: Enter your OpenAI API key securely
 2. **🎤 Input Clinical Note**: Type or dictate patient presentation and findings
-3. **🤖 Generate Analysis**: Click "Analyze with AI" for O3-mini processing
+3. **🤖 Generate Analysis**: Click "Analyze with AI" for O3 processing
 4. **🎨 Explore 3D Results**: Navigate interactive 3D medical knowledge graph
 5. **📋 View Problem List**: Access billable ICD-10 codes and diagnoses
 6. **💾 Track History**: All interactions automatically stored for analytics
@@ -242,7 +242,7 @@ curl http://localhost:5173  # Health check
 ```bash
 # .env.local (optional)
 VITE_MCP_API_URL=http://localhost:3000
-VITE_OPENAI_MODEL=o3-mini
+VITE_OPENAI_MODEL=o3
 VITE_DEBUG_MODE=true
 ```
 
@@ -250,7 +250,7 @@ VITE_DEBUG_MODE=true
 ```bash
 # Production environment variables
 VITE_MCP_API_URL=https://your-mcp-backend.com
-VITE_OPENAI_MODEL=o3-mini
+VITE_OPENAI_MODEL=o3
 VITE_DEBUG_MODE=false
 ```
 

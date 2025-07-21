@@ -53,7 +53,7 @@ const ChatPage: React.FC = () => {
                 fontSize: '0.75rem',
               }}
             >
-              AI-powered clinical reasoning with OpenAI O3-mini
+              AI-powered clinical reasoning with OpenAI O3
             </Typography>
           </Box>
         </Container>

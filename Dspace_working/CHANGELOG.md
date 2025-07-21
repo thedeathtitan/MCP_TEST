@@ -9,13 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🚀 **BREAKING CHANGES**
 - **Complete System Redesign**: Transitioned from standalone React app to full-stack microservices architecture
-- **AI Model Migration**: Replaced Gemini integration with OpenAI O3-mini for superior medical reasoning
+- **AI Model Migration**: Replaced Gemini integration with OpenAI O3 for superior medical reasoning
 - **Visualization Overhaul**: Migrated from 2D Cytoscape.js to immersive 3D Three.js visualization
 - **Data Persistence**: Added PostgreSQL database for complete interaction history and analytics
 - **Protocol Standardization**: Implemented Model Context Protocol (MCP) for scalable AI communication
 
-### 🤖 **Advanced AI Integration (OpenAI O3-mini)**
-- **OpenAI O3-mini Integration**: Production-ready medical reasoning with enhanced capabilities
+### 🤖 **Advanced AI Integration (OpenAI O3)**
+- **OpenAI O3 Integration**: Production-ready medical reasoning with enhanced capabilities
 - **Structured Medical Prompts**: Emergency medicine expertise built into comprehensive prompts
 - **Evidence-Based Diagnostics**: Likelihood scoring with clinical evidence arrays
 - **ICD-10 Problem Lists**: Automatic generation of billable medical codes
@@ -226,7 +226,7 @@ CREATE TABLE diagnosis_history (
 
 | Feature | v1.0.0 | v1.1.0 | v1.2.0 | v2.0.0 |
 |---------|--------|--------|--------|--------|
-| **AI Model** | OpenAI GPT | OpenAI GPT | OpenAI GPT | ✅ OpenAI O3-mini |
+| **AI Model** | OpenAI GPT | OpenAI GPT | OpenAI GPT | ✅ OpenAI O3 |
 | **Visualization** | 2D Cytoscape.js | 2D Cytoscape.js | 2D Cytoscape.js | ✅ 3D Three.js |
 | **UI Framework** | Tailwind CSS | Tailwind CSS | Material-UI | ✅ Material-UI |
 | **Data Persistence** | Local Storage | Local Storage | Local Storage | ✅ PostgreSQL |
@@ -278,7 +278,7 @@ CREATE TABLE diagnosis_history (
 
 ### **Phase 3: Architecture Transformation (v2.0.0)**
 - ✅ Complete system redesign
-- ✅ OpenAI O3-mini integration
+- ✅ OpenAI O3 integration
 - ✅ Three.js 3D visualization
 - ✅ PostgreSQL database integration
 - ✅ MCP protocol implementation
@@ -297,7 +297,7 @@ CREATE TABLE diagnosis_history (
 
 | Component | Technology | Status | Performance |
 |-----------|------------|---------|-------------|
-| **🤖 AI Analysis** | OpenAI O3-mini | ✅ Production | < 5s response |
+| **🤖 AI Analysis** | OpenAI O3 | ✅ Production | < 5s response |
 | **🎨 3D Visualization** | Three.js + React | ✅ Production | 60 FPS |
 | **🛡️ MCP Protocol** | JSON-RPC 2.0 | ✅ Active | < 100ms |
 | **🗄️ Database** | PostgreSQL 17 | ✅ Integrated | < 50ms queries |

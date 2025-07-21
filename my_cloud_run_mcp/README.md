@@ -72,7 +72,7 @@ This MCP server enables AI agents and frontend applications to:
 ## 🛠️ Available MCP Tools
 
 ### **Medical Analysis Tools**
-- `analyze_medical_note`: **Primary tool** - Comprehensive medical analysis with O3-mini
+- `analyze_medical_note`: **Primary tool** - Comprehensive medical analysis with O3
   - Input: Clinical note text + optional OpenAI API key
   - Output: Structured diagnosis groups, next actions, relationships, problem list
   - Features: Evidence-based reasoning, ICD-10 codes, priority scoring
@@ -261,9 +261,9 @@ CREATE TABLE user_interactions (
   id SERIAL PRIMARY KEY,
   session_id VARCHAR(255) NOT NULL,
   clinical_note TEXT NOT NULL,
-  analysis_result JSONB,           -- Full OpenAI O3-mini response
+  analysis_result JSONB,           -- Full OpenAI O3 response
   processing_time INTEGER,         -- Milliseconds
-  model_used VARCHAR(100),         -- 'o3-mini'
+  model_used VARCHAR(100),         -- 'o3'
   nodes_created INTEGER DEFAULT 0,
   relationships_created INTEGER DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -473,7 +473,7 @@ GET /metrics
 - [ ] **Service health verified**
 - [ ] **Database connectivity confirmed**
 - [ ] **MCP tools responding correctly**
-- [ ] **Medical analysis working with O3-mini**
+- [ ] **Medical analysis working with O3**
 - [ ] **Monitoring and logging configured**
 
 ## 📚 Additional Resources
@@ -494,4 +494,4 @@ GET /metrics
 
 ---
 
-**🏥 Production-Ready Medical AI Backend** | **Built for Healthcare Innovation with OpenAI O3-mini**
+**🏥 Production-Ready Medical AI Backend** | **Built for Healthcare Innovation with OpenAI O3**

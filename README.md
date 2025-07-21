@@ -1,13 +1,13 @@
 # 🏥 Medical Diagnostic Assistant - AI-Powered 3D Diagnostic System
 
-A comprehensive medical diagnostic assistant that combines **OpenAI O3-mini** reasoning, **interactive 3D visualization**, **PostgreSQL analytics**, and **Model Context Protocol (MCP)** architecture for intelligent clinical decision support.
+A comprehensive medical diagnostic assistant that combines **OpenAI O3** reasoning, **interactive 3D visualization**, **PostgreSQL analytics**, and **Model Context Protocol (MCP)** architecture for intelligent clinical decision support.
 
 ## 🎯 System Overview
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │  React Frontend │    │   MCP Backend    │    │   PostgreSQL    │
-│  Three.js 3D    │◄──►│ OpenAI O3-mini   │◄──►│  Analytics DB   │
+│  Three.js 3D    │◄──►│ OpenAI O3   │◄──►│  Analytics DB   │
 │   (Port 5173)   │    │   (Port 3000)    │    │   (Port 5432)   │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
                                 │
@@ -22,7 +22,7 @@ A comprehensive medical diagnostic assistant that combines **OpenAI O3-mini** re
 ## ✨ Key Features
 
 ### 🤖 **AI-Powered Medical Analysis**
-- **OpenAI O3-mini Integration**: Advanced medical reasoning and diagnostic analysis
+- **OpenAI O3 Integration**: Advanced medical reasoning and diagnostic analysis
 - **Structured Clinical Prompts**: Emergency medicine expertise built into prompts
 - **Evidence-Based Diagnostics**: Likelihood scoring with clinical evidence
 - **ICD-10 Problem Lists**: Automatic generation of billable medical codes
@@ -58,7 +58,7 @@ A comprehensive medical diagnostic assistant that combines **OpenAI O3-mini** re
 ### Prerequisites
 
 - **Docker & Docker Compose**
-- **OpenAI API Key** (for O3-mini model)
+- **OpenAI API Key** (for O3 model)
 - **Node.js 18+** (for local development)
 - **Google Cloud CLI** (for cloud deployment)
 
@@ -118,14 +118,14 @@ make clean               # Clean up Docker resources
 
 ### 1. **Medical Analysis Flow**
 ```
-Clinical Note → MCP Client → OpenAI O3-mini → JSON Response → PostgreSQL Storage → 3D Visualization
+Clinical Note → MCP Client → OpenAI O3 → JSON Response → PostgreSQL Storage → 3D Visualization
 ```
 
 ### 2. **OpenAI Integration** (`tools.js`)
 ```javascript
-// Advanced medical reasoning with O3-mini
+// Advanced medical reasoning with O3
 const result = await openai.chat.completions.create({
-  model: 'o3-mini',
+  model: 'o3',
   messages: [
     {
       role: "system", 
@@ -170,7 +170,7 @@ await recordInteraction(
   clinical_note, 
   frontendResponse,
   processingTime,
-  'o3-mini',
+  'o3',
   nodesCreated
 );
 ```
@@ -232,7 +232,7 @@ CREATE TABLE user_interactions (
   clinical_note TEXT NOT NULL,
   analysis_result JSONB,           -- Full OpenAI response
   processing_time INTEGER,
-  model_used VARCHAR(100),         -- 'o3-mini'
+  model_used VARCHAR(100),         -- 'o3'
   nodes_created INTEGER,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -334,7 +334,7 @@ gcloud sql instances create mcp-diagnostics \
 
 | Component | Technology | Status | Purpose |
 |-----------|------------|---------|---------|
-| **🤖 AI Analysis** | OpenAI O3-mini | ✅ Working | Medical reasoning |
+| **🤖 AI Analysis** | OpenAI O3 | ✅ Working | Medical reasoning |
 | **🎨 3D Visualization** | Three.js + React | ✅ Working | Interactive graphs |
 | **🛡️ MCP Protocol** | JSON-RPC 2.0 | ✅ Active | AI communication |
 | **🗄️ Database** | PostgreSQL 17 | ✅ Integrated | Full persistence |

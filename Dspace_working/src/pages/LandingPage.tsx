@@ -32,7 +32,7 @@ const LandingPage: React.FC = () => {
     {
       icon: <Psychology />,
       title: 'AI-Powered Analysis',
-      description: 'Advanced reasoning with OpenAI O3-mini for comprehensive diagnostic assistance'
+      description: 'Advanced reasoning with OpenAI O3 for comprehensive diagnostic assistance'
     },
     {
       icon: <Timeline />,
@@ -218,7 +218,7 @@ const LandingPage: React.FC = () => {
                   mx: 'auto'
                 }}
               >
-                Advanced diagnostic assistance for medical professionals using OpenAI O3-mini
+                Advanced diagnostic assistance for medical professionals using OpenAI O3
                 and interactive visualization for comprehensive clinical decision support.
               </Typography>
             </motion.div>
@@ -253,7 +253,7 @@ const LandingPage: React.FC = () => {
               <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, opacity: 0.7 }}>
                 <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Box sx={{ width: 8, height: 8, bgcolor: theme.palette.success.main, borderRadius: '50%' }} />
-                  OpenAI O3-mini Ready
+                  OpenAI O3 Ready
                 </Typography>
                 <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Box sx={{ width: 8, height: 8, bgcolor: theme.palette.info.main, borderRadius: '50%' }} />

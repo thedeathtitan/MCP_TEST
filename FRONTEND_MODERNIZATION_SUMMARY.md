@@ -10,12 +10,12 @@
 
 ## 🎯 **SYSTEM OVERVIEW**
 
-**Complete medical diagnostic assistant** combining **OpenAI O3-mini** reasoning, **interactive 3D visualization**, **PostgreSQL analytics**, and **Model Context Protocol (MCP)** architecture for intelligent clinical decision support.
+**Complete medical diagnostic assistant** combining **OpenAI O3** reasoning, **interactive 3D visualization**, **PostgreSQL analytics**, and **Model Context Protocol (MCP)** architecture for intelligent clinical decision support.
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │  React Frontend │    │   MCP Backend    │    │   PostgreSQL    │
-│  Three.js 3D    │◄──►│ OpenAI O3-mini   │◄──►│  Analytics DB   │
+│  Three.js 3D    │◄──►│ OpenAI O3   │◄──►│  Analytics DB   │
 │   (Port 5173)   │    │   (Port 3000)    │    │   (Port 5432)   │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
@@ -28,7 +28,7 @@
 
 | Component | Previous System | Current System |
 |-----------|----------------|----------------|
-| **AI Model** | Gemini (deprecated) | ✅ **OpenAI O3-mini** |
+| **AI Model** | Gemini (deprecated) | ✅ **OpenAI O3** |
 | **Visualization** | 2D Cytoscape.js | ✅ **3D Three.js** |
 | **Data Persistence** | Local storage only | ✅ **PostgreSQL** |
 | **Architecture** | Frontend-only | ✅ **MCP Microservices** |
@@ -41,9 +41,9 @@
 
 ## 🤖 **AI INTEGRATION TRANSFORMATION**
 
-### **✅ OpenAI O3-mini Advanced Medical Reasoning**
+### **✅ OpenAI O3 Advanced Medical Reasoning**
 - **Replaced**: Gemini 2.5 Pro integration
-- **Added**: OpenAI O3-mini with enhanced reasoning capabilities
+- **Added**: OpenAI O3 with enhanced reasoning capabilities
 - **Features**:
   - Advanced medical reasoning for complex clinical cases
   - Emergency medicine expertise built into comprehensive prompts
@@ -170,7 +170,7 @@ CREATE TABLE user_interactions (
   clinical_note TEXT NOT NULL,
   analysis_result JSONB,           -- Full OpenAI response
   processing_time INTEGER,         -- Milliseconds
-  model_used VARCHAR(100),         -- 'o3-mini'
+  model_used VARCHAR(100),         -- 'o3'
   nodes_created INTEGER DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -227,7 +227,7 @@ ORDER BY frequency DESC;
 // Primary medical analysis tool
 {
   name: "analyze_medical_note",
-  description: "Comprehensive medical analysis with O3-mini",
+  description: "Comprehensive medical analysis with O3",
   inputSchema: {
     type: "object",
     properties: {
@@ -249,7 +249,7 @@ ORDER BY frequency DESC;
 
 ### **🔄 MCP Communication Flow**
 ```
-Frontend MCP Client → Backend MCP Server → OpenAI O3-mini → PostgreSQL Storage → 3D Visualization
+Frontend MCP Client → Backend MCP Server → OpenAI O3 → PostgreSQL Storage → 3D Visualization
 ```
 
 ---
@@ -436,7 +436,7 @@ OPENAI_API_KEY=${SECRET_MANAGER_OPENAI_KEY}
 - **Performance Standards**: All benchmarks exceeded expectations
 
 ### **✅ Medical Functionality Validated**
-- **Advanced AI Integration**: OpenAI O3-mini producing quality medical analysis
+- **Advanced AI Integration**: OpenAI O3 producing quality medical analysis
 - **Comprehensive Outputs**: Multi-category diagnostic workflows with evidence
 - **Visual Excellence**: 3D medical concept visualization with professional interface
 - **Data Persistence**: Complete interaction tracking for analytics and improvement
@@ -492,5 +492,5 @@ gcloud run deploy frontend --source ./Dspace_working
 **🏥 Production-Ready Medical AI System** | **Built with ❤️ for Healthcare Innovation**
 
 *Completed: January 2025 | Total Development Time: 3 months | Status: OPERATIONAL*  
-*Architecture: OpenAI O3-mini + Three.js + PostgreSQL + MCP + Docker*  
+*Architecture: OpenAI O3 + Three.js + PostgreSQL + MCP + Docker*  
 *Next Phase: Multi-model AI ensemble and advanced 3D features* 

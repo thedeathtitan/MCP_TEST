@@ -28,11 +28,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## High-Level Architecture
 
 ### System Overview
-This is a **Medical Diagnostic Assistant** with a React frontend that integrates OpenAI O3-mini through a Model Context Protocol (MCP) backend, featuring 3D visualization and PostgreSQL persistence.
+This is a **Medical Diagnostic Assistant** with a React frontend that integrates OpenAI O3 through a Model Context Protocol (MCP) backend, featuring 3D visualization and PostgreSQL persistence.
 
 **Key Data Flow:**
 ```
-Clinical Note → MCP Client → OpenAI O3-mini → Medical Analysis → PostgreSQL Storage → 3D Visualization
+Clinical Note → MCP Client → OpenAI O3 → Medical Analysis → PostgreSQL Storage → 3D Visualization
 ```
 
 ### Core Components
@@ -61,7 +61,7 @@ Clinical Note → MCP Client → OpenAI O3-mini → Medical Analysis → Postgre
 - **State Management**: Zustand with persistence
 - **Build Tool**: Vite 6.3+ with hot reload
 - **Backend Protocol**: Model Context Protocol (MCP) with JSON-RPC 2.0
-- **AI Integration**: OpenAI O3-mini for medical reasoning
+- **AI Integration**: OpenAI O3 for medical reasoning
 - **Database**: PostgreSQL 17 with Flyway migrations
 - **Containerization**: Docker Compose multi-service orchestration
 
@@ -112,7 +112,7 @@ Clinical Note → MCP Client → OpenAI O3-mini → Medical Analysis → Postgre
 - Medical concept relationship mapping
 
 **AI Integration Specifics:**
-- OpenAI O3-mini with specialized emergency medicine prompts
+- OpenAI O3 with specialized emergency medicine prompts
 - Sub-5-second response times for complex clinical cases
 - Structured medical reasoning with likelihood scoring
 - Multi-category analysis (cardiovascular, pulmonary, infectious, etc.)

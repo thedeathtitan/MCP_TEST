@@ -2,7 +2,7 @@
 
 ## 🚀 **CURRENT SYSTEM - VERSION 2.0.0**
 
-**Architecture**: Containerized microservices with OpenAI O3-mini, Three.js 3D visualization, MCP protocol, and PostgreSQL persistence.
+**Architecture**: Containerized microservices with OpenAI O3, Three.js 3D visualization, MCP protocol, and PostgreSQL persistence.
 
 ---
 
@@ -54,7 +54,7 @@ npm run build
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │  React Frontend │    │   MCP Backend    │    │   PostgreSQL    │
-│  Three.js 3D    │◄──►│ OpenAI O3-mini   │◄──►│  Analytics DB   │
+│  Three.js 3D    │◄──►│ OpenAI O3   │◄──►│  Analytics DB   │
 │   (Port 5173)   │    │   (Port 3000)    │    │   (Port 5432)   │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
@@ -68,7 +68,7 @@ npm run build
 | **State Management** | Zustand | 5.0+ | State with persistence |
 | **Build Tool** | Vite | 6.3+ | Development + builds |
 | **Backend** | Node.js MCP Server | 18+ | Medical AI processing |
-| **AI Model** | OpenAI O3-mini | Latest | Medical reasoning |
+| **AI Model** | OpenAI O3 | Latest | Medical reasoning |
 | **Database** | PostgreSQL | 17 | Data persistence |
 | **Protocol** | Model Context Protocol | 2024-11-05 | AI communication |
 | **Containers** | Docker Compose | Latest | Orchestration |
@@ -120,13 +120,13 @@ const MedicalNode3D = ({ concept, position, likelihood, priority }) => {
 };
 ```
 
-### **OpenAI O3-mini Integration**
-- **Model**: OpenAI O3-mini for advanced medical reasoning
+### **OpenAI O3 Integration**
+- **Model**: OpenAI O3 for advanced medical reasoning
 - **Current API Pattern**:
 ```typescript
 const analyzeMedicalNote = async (clinical_note: string, api_key: string) => {
   const response = await openai.chat.completions.create({
-    model: 'o3-mini',
+    model: 'o3',
     messages: [
       {
         role: "system",
@@ -294,7 +294,7 @@ curl http://localhost:5173           # Frontend health
 psql postgresql://mcp_user:dev_password_123@localhost:5432/mcp_diagnostics
 
 # Manual testing scenarios
-1. Medical note analysis with O3-mini
+1. Medical note analysis with O3
 2. 3D visualization rendering and interaction
 3. Database persistence of interactions
 4. MCP protocol tool discovery and execution

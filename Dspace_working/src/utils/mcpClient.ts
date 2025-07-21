@@ -16,18 +16,29 @@ const DiagnosisSchema = z.object({
       confidence: z.number().min(0.1).max(1.0),
       evidence: z.array(z.string()).min(1),
       details: z.string(),
-      category: z.string()
+      category: z.string(),
+      priority: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']).optional(),
+      urgency: z.enum(['IMMEDIATE', 'HOURS', 'DAYS', 'FOLLOW_UP']).optional(),
+      swimlane: z.enum(['CRITICAL', 'CARDIOVASCULAR', 'RESPIRATORY', 'NEUROLOGICAL', 'INFECTIOUS', 'DIAGNOSTIC', 'ROUTINE']).optional(),
+      attention_required: z.boolean().optional(),
+      time_sensitive: z.boolean().optional(),
+      system_involvement: z.array(z.string()).optional()
     })).min(1).max(6)
   })).min(1).max(6),
   next_actions: z.array(z.object({
     id: z.string(),
     label: z.string(),
     type: z.literal('next_action'),
-    priority: z.enum(['urgent', 'high', 'medium', 'low']),
+    priority: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']),
+    urgency: z.enum(['IMMEDIATE', 'HOURS', 'DAYS', 'FOLLOW_UP']).optional(),
     details: z.string(),
     category: z.enum(['diagnostic', 'therapeutic', 'monitoring', 'consultation']),
     timing: z.string(),
-    related_diagnosis_id: z.string()
+    related_diagnosis_id: z.string(),
+    swimlane: z.enum(['CRITICAL', 'CARDIOVASCULAR', 'RESPIRATORY', 'NEUROLOGICAL', 'INFECTIOUS', 'DIAGNOSTIC', 'ROUTINE']).optional(),
+    attention_required: z.boolean().optional(),
+    time_sensitive: z.boolean().optional(),
+    system_involvement: z.array(z.string()).optional()
   })).min(2).max(15),
   relationships: z.array(z.object({
     id: z.string(),
@@ -60,9 +71,14 @@ export interface MCPResponse {
     evidence?: string[];
     details?: string;
     category?: string;
-    priority?: string;
+    priority?: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+    urgency?: 'IMMEDIATE' | 'HOURS' | 'DAYS' | 'FOLLOW_UP';
     timing?: string;
     related_diagnosis_id?: string;
+    swimlane?: 'CRITICAL' | 'CARDIOVASCULAR' | 'RESPIRATORY' | 'NEUROLOGICAL' | 'INFECTIOUS' | 'DIAGNOSTIC' | 'ROUTINE';
+    attention_required?: boolean;
+    time_sensitive?: boolean;
+    system_involvement?: string[];
   }>;
   edges: Array<{
     id: string;
@@ -179,38 +195,94 @@ async function callMCPTool(toolName: string, toolArgs: Record<string, any>): Pro
 }
 
 /**
- * Comprehensive medical knowledge system prompt for Gemini
+ * Enhanced medical knowledge system prompt with swimlane classification
  */
-const getMedicalSystemPrompt = (clinicalNote: string) => `You are an expert emergency medicine physician with access to a comprehensive medical knowledge database. You will analyze clinical presentations and create structured medical knowledge graphs with comprehensive diagnostic reasoning.
+const getMedicalSystemPrompt = (clinicalNote: string) => `You are an expert emergency medicine physician with access to a comprehensive medical knowledge database. You will analyze clinical presentations and create structured medical knowledge graphs with comprehensive diagnostic reasoning and intelligent swimlane classification.
 
 CLINICAL PRESENTATION TO ANALYZE:
 ${clinicalNote}
 
 YOUR TASK:
 1. Perform comprehensive medical analysis with differential diagnosis approach
-2. Create medical nodes in the database for all relevant concepts
-3. Build extensive relationships between medical concepts  
-4. Generate detailed response for advanced medical visualization
+2. Classify each diagnosis and action into appropriate medical swimlanes
+3. Assign priority levels, urgency timing, and attention requirements
+4. Create medical nodes in the database for all relevant concepts
+5. Build extensive relationships between medical concepts  
+6. Generate detailed response for advanced medical visualization
 
-COMPREHENSIVE MEDICAL ANALYSIS REQUIREMENTS:
+SWIMLANE CLASSIFICATION SYSTEM:
+You must classify each diagnosis and action into ONE of these medical swimlanes:
+
+🔴 **CRITICAL**: Life-threatening conditions requiring immediate intervention
+- Priority: CRITICAL, Urgency: IMMEDIATE
+- Examples: MI, stroke, sepsis, respiratory failure, shock
+- Always set attention_required: true, time_sensitive: true
+
+🫀 **CARDIOVASCULAR**: Heart and circulation related conditions
+- Priority: HIGH/MEDIUM, Urgency: HOURS/DAYS  
+- Examples: chest pain, hypertension, arrhythmias, heart failure
+- Set attention_required: true if high confidence/likelihood
+
+🫁 **RESPIRATORY**: Lung and breathing related conditions
+- Priority: HIGH/MEDIUM, Urgency: HOURS/DAYS
+- Examples: pneumonia, COPD, asthma, dyspnea, lung conditions
+- Set attention_required: true if respiratory distress
+
+🧠 **NEUROLOGICAL**: Brain and nervous system conditions
+- Priority: HIGH/MEDIUM, Urgency: HOURS/DAYS
+- Examples: headache, confusion, seizures, stroke, altered mental status
+- Set attention_required: true if acute neurological symptoms
+
+🦠 **INFECTIOUS**: Infectious diseases and antimicrobial therapy
+- Priority: HIGH/MEDIUM, Urgency: HOURS/DAYS
+- Examples: infections, sepsis, fever, antibiotic treatment
+- Set attention_required: true if signs of sepsis
+
+🩺 **DIAGNOSTIC**: Laboratory tests, imaging, and diagnostic procedures
+- Priority: MEDIUM/LOW, Urgency: HOURS/DAYS
+- Examples: blood work, imaging, cultures, biopsies
+- Set time_sensitive: true for urgent tests
+
+📋 **ROUTINE**: Standard care and follow-up items
+- Priority: LOW, Urgency: DAYS/FOLLOW_UP
+- Examples: routine monitoring, discharge planning, follow-up
+- Generally attention_required: false
+
+ENHANCED MEDICAL ANALYSIS REQUIREMENTS:
 - **DIAGNOSIS NODES**: Extract 6-8 distinct diagnostic possibilities
-  - Include common, serious, and rare differential diagnoses
-  - Consider multiple organ systems (cardiac, pulmonary, GI, neurologic, infectious, etc.)
-  - Assign likelihood scores based on clinical evidence
-  - Include both primary and secondary diagnoses
+  - Assign appropriate swimlane based on medical system
+  - Set priority: CRITICAL/HIGH/MEDIUM/LOW
+  - Set urgency: IMMEDIATE/HOURS/DAYS/FOLLOW_UP
+  - Include likelihood scores and confidence levels
+  - Set attention_required: true for high-priority items
+  - Set time_sensitive: true for urgent diagnoses
+  - Include system_involvement array (e.g., ["cardiovascular", "respiratory"])
 
 - **NEXT ACTION NODES**: Generate 6-8 specific actionable steps
-  - Diagnostic tests (labs, imaging, procedures)
-  - Therapeutic interventions (medications, treatments)
-  - Monitoring requirements (vital signs, symptoms)
-  - Consultations (specialists, services)
-  - Patient care directives (positioning, diet, activity)
+  - Classify into appropriate swimlane based on action type
+  - Assign priority and urgency levels
+  - Set attention_required for critical/urgent actions
+  - Include diagnostic tests, therapeutic interventions, monitoring
+  - Link to related diagnosis IDs
 
-- **PROBLEM LIST**: Create 6-8 billable medical problems
-  - Mix of acute and chronic conditions
-  - Include comorbidities and risk factors
-  - Ensure accurate ICD-10 coding for optimal billing
-  - Consider social determinants and functional status
+PRIORITY ASSIGNMENT LOGIC:
+- **CRITICAL**: Life-threatening, requires immediate attention (< 15 minutes)
+- **HIGH**: Urgent, needs attention within hours
+- **MEDIUM**: Important, should be addressed within the day
+- **LOW**: Routine, can be addressed in follow-up
+
+URGENCY TIMING:
+- **IMMEDIATE**: Must be done now (< 15 minutes)
+- **HOURS**: Within 2-4 hours
+- **DAYS**: Within 24-48 hours  
+- **FOLLOW_UP**: Outpatient or next visit
+
+ATTENTION REQUIREMENTS:
+- Set attention_required: true for:
+  - High confidence diagnoses (> 0.7)
+  - Critical or high priority items
+  - Time-sensitive actions
+  - Items requiring immediate clinical decision
 
 MEDICAL REASONING APPROACH:
 - Use systematic differential diagnosis methodology
@@ -221,16 +293,14 @@ MEDICAL REASONING APPROACH:
 - Consider complications and comorbidities
 - Apply clinical decision rules and guidelines
 
-ADVANCED DIAGNOSTIC THINKING:
-- **Primary Assessment**: Most likely diagnoses based on presentation
-- **Rule-Out Diagnoses**: Serious conditions that must be excluded
-- **Chronic Conditions**: Underlying diseases contributing to presentation  
-- **Complication Monitoring**: Potential adverse outcomes to watch for
-- **Preventive Care**: Screening and risk reduction opportunities
+SYSTEM INVOLVEMENT:
+For each diagnosis/action, specify relevant medical systems:
+- cardiovascular, respiratory, neurological, infectious, gastrointestinal, 
+- genitourinary, endocrine, hematologic, musculoskeletal, dermatologic, psychiatric
 
-Remember: You have access to a persistent medical database that grows with each case. Use this knowledge to provide comprehensive, accurate medical analysis that builds upon previous clinical experience.
+Remember: You have access to a persistent medical database that grows with each case. Use this knowledge to provide comprehensive, accurate medical analysis with intelligent swimlane classification that enhances clinical workflow.
 
-Please analyze this case thoroughly and create appropriate medical nodes, then provide a detailed structured response for the advanced diagnostic visualization system.`;
+Please analyze this case thoroughly, classify all items into appropriate swimlanes, and provide a detailed structured response for the advanced diagnostic visualization system.`;
 
 /**
  * Main analysis function - uses MCP server with analyze_medical_note tool
@@ -832,7 +902,7 @@ function createFallbackResponse(clinicalNote: string, error: any): MCPResponse {
         id: 'immediate_workup',
         label: 'Immediate Medical Workup',
         type: 'next_action',
-        priority: 'urgent',
+        priority: 'CRITICAL',
         details: 'Immediate assessment and diagnostic workup required',
         category: 'diagnostic',
         timing: 'immediately',
@@ -884,11 +954,11 @@ function getDiagnosisCategory(diagnosis: string): string {
 /**
  * Get action priority based on type and urgency
  */
-function getActionPriority(type: string, index: number): 'urgent' | 'high' | 'medium' | 'low' {
-  if (type === 'assessment' || index === 0) return 'urgent';
-  if (type === 'test' && index < 3) return 'high';
-  if (type === 'treatment') return 'medium';
-  return 'low';
+function getActionPriority(type: string, index: number): 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' {
+  if (type === 'assessment' || index === 0) return 'CRITICAL';
+  if (type === 'test' && index < 3) return 'HIGH';
+  if (type === 'treatment') return 'MEDIUM';
+  return 'LOW';
 }
 
 /**
